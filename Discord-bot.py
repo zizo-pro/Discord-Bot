@@ -1,25 +1,49 @@
 import discord
+from discord_ui import Button, components, ButtonStyle, SelectMenu, SelectOption
+import discord_ui
+from discord_components import *
+from keep_alive import keep_alive
+client = discord.Client()
 
 def read_token():
-  with open("token.txt","r") as f:
-    lines = f.readlines()
-    return lines[0].strip()
+	with open("token.txt","r") as f:
+		tok = f.readlines()
+		return tok
 
-client = discord.Client()
+@client.event
+async def on_ready():
+		print("we have logged in as {0.user}".format(client))
+		DiscordComponents(client)
+
 @client.event
 async def on_message(message):
-  server_id = client.get_guild(839639743771836456)
-  if message.content.find("!hello") != -1:
-    await message.channel.send("hi")
+		def server():
+			global server_id
+			server_id = client.get_guild(839639743771836456)
+		
+		if message.author == client.user:
+			return
 
-  elif message.content == "!users":
-    await message.channel.send(f"NO. of Members: {server_id.member_count}")
+		if message.content.startswith('$hello'):
+			await message.channel.send("مساء الخرة")
 
-@client.event
-async def on_member_join(member):
-  for channel in member.guild.channels:
-    if str(channel) == "general":
-      await channel.send('Private message')
+		if message.content.startswith('$صباحو'):
+			await message.channel.send("صبح اعمنا ✋")
 
-token = read_token()
-client.run(token)
+		if message.content.startswith('$بحبك'):
+			await message.channel.send("حبك برص")
+
+		if message.content.startswith('$help'):
+			await message.channel.send('اتصرف انا عبيط')
+
+		if message.content == "users":
+			server()
+			await message.channel.send(f"members count: {server_id.member_count}")
+
+		if message.content.startswith('$test'):
+			await message.channel.send("this is a button!",components = [Button(label="دوس",style=ButtonStyle.blue), Button(label="Am SeXy AnD i KnOw It",style=ButtonStyle.red)])
+			interaction = await client.wait_for(("button_click"))
+			await interaction.respond(content="طيزك فيها دبوس")
+
+keep_alive()
+client.run(read_token()[0])
