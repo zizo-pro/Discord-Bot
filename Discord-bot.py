@@ -5,6 +5,7 @@ from discord_components import *
 from keep_alive import keep_alive
 client = discord.Client()
 
+print(discord.__version__)
 def read_token():
 	with open("token.txt","r") as f:
 		tok = f.readlines()
@@ -44,6 +45,10 @@ async def on_message(message):
 			await message.channel.send("this is a button!",components = [Button(label="دوس",style=ButtonStyle.blue), Button(label="Am SeXy AnD i KnOw It",style=ButtonStyle.red)])
 			interaction = await client.wait_for(("button_click"))
 			await interaction.respond(content="طيزك فيها دبوس")
+@client.event
+async def on_member_join(member):
+		print("joined")
+		await client.send_message(member,"Welcome!")
 
 keep_alive()
 client.run(read_token()[0])
