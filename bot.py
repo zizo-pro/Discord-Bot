@@ -77,6 +77,9 @@ async def on_member_join(member):
 
 @client.command()
 async def mention(message):
+	await message.message.add_reaction(emoji="👍")
+	await message.message.add_reaction(emoji="😂")
+	await message.message.add_reaction(emoji="💖")
 	await message.channel.send(f"{message.author.mention} done")
 
 @client.command()
@@ -90,7 +93,6 @@ async def add_bad_word(message):
 		db.commit()
 		get_bad_words()
 		await message.channel.send(f"Word added ||{msg}||")
-
 
 
 # keep_alive()
