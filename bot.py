@@ -4,7 +4,7 @@ from pickle import TRUE
 from tokenize import Ignore
 from click import pass_obj
 import discord
-from discord.ext import commands
+from discord.ext import commands, join
 from keep_alive import keep_alive
 from discord_components import DiscordComponents, Button, ButtonStyle
 import sqlite3
@@ -55,18 +55,21 @@ async def BadWords(message):
 		await message.channel.purge(limit=1)
 		await message.channel.send("Bad Word :shushing_face:")
 
-@client.event
-async def on_member_join(member):
-	guild = member.guild
-	if guild.system_channel is not None:
-		to_send = f'Welcome {member.mention} to {guild.name}!'
-		await guild.system_channel.send(to_send)
 
-intents = discord.Intents.default()
-intents.members = True
+# intents = discord.Intents.default()
+# intents.members = True
+# client = commands.Bot(command_prefix=',', intents=intents)
 
-client = MyClient(intents=intents)
+# @client.event 
+# async def on_member_join(member):
+# 	emb=discord.Embed(title="NEW MEMBER",description=f"Thanks {member.name} for joining!")
+#     await channel.send(embed=emb)
 
+
+@client.command
+async def join(context):
+	channel = context.author.voice.channel
+	await channel.connect()
 
 
 
