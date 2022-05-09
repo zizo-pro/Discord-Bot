@@ -11,7 +11,7 @@ import sqlite3
 
 db = sqlite3.connect("bot_database.db")
 cr = db.cursor()
-EmojiLink = "https://www.youtube.com/watch?v=iik25wqIuFo"
+EmojiLink = "0"
 
 
 def read_token():
@@ -55,9 +55,23 @@ async def button(ctx):
 	if res.channel == ctx.channel :
 		await res.message.channel.send(EmojiLink)
 
+def get_users_from_db():
+	global lol
+	cr.execute("SELECT id FROM users")
+	lol = cr.fetchall()
 #Delete Bad Words#
 @client.listen('on_message')
 async def BadWords(message):
+	id = message.author.id
+	username = message.author
+	get_users_from_db()
+	if id == lol[0][0]:
+		pass
+	else:
+		cr.execute(f"INSERT INTO users (user_name,id,no_of_BD) VALUES ('{username}','{id}','0')")
+		cr.execute(f"INSERT INTO ranks (user_id,XP) VALUES ('{id}','0')")
+		db.commit()
+
 	for txt in Blocked_Words:
 		if "Admin" not in str(message.author.roles) and txt in str(message.content.lower()) and "BOT" not in str(message.author.roles):
 			await message.channel.purge(limit=1)
@@ -94,6 +108,10 @@ async def add_bad_word(message):
 		get_bad_words()
 		await message.channel.send(f"Word added ||{msg}||")
 
+@client.command()
+async def id(message):
+	print(message.author.id)
+	print(message.author)
 
 # keep_alive()
 client.run(read_token())
