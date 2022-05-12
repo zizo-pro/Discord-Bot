@@ -128,5 +128,9 @@ async def id(message):
 	print(message.author.id)
 	print(message.author)
 
+@client.command()
+async def صباحو(message):
+	await message.channel.send("ميتين دي اصطباحه قوم ذاكر يلا")
+
 keep_alive()
 client.run(read_token())
