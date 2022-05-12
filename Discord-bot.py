@@ -1,9 +1,13 @@
+from colorama import Style
 import discord
 from discord_ui import Button, components, ButtonStyle, SelectMenu, SelectOption
 import discord_ui
 from discord_components import *
+from yarl import URL
 from keep_alive import keep_alive
+
 client = discord.Client()
+DisBut= DiscordComponents(client)
 
 print(discord.__version__)
 def read_token():
@@ -45,6 +49,25 @@ async def on_message(message):
 			await message.channel.send("this is a button!",components = [Button(label="دوس",style=ButtonStyle.blue), Button(label="Am SeXy AnD i KnOw It",style=ButtonStyle.red)])
 			interaction = await client.wait_for(("button_click"))
 			await interaction.respond(content="طيزك فيها دبوس")
+
+@client.event
+async def button(ctx):
+	BCommand= await ctx.send(
+		"Button Command Ran!",
+		components=[
+			Button(Style=ButtonStyle.blue, label="Click Me!"),
+			Button(Style=ButtonStyle.URL, label="Important Video!", url="https://www.youtube.com/watch?v=QB7ACr7pUuE"),
+			Button(Style=ButtonStyle.URL, label="ِAnother Important Video!", url="https://www.youtube.com/watch?v=8G0omjVSh_U"),
+		],
+	)
+
+	res = await DisBut.wait_for_button_click(BCommand)
+	await res.respond(
+		type=InteractionEventType.ChannelMessageWithSource,
+		content=f'{res.button.lable} has been Clicked!!!'
+	)
+
+
 @client.event
 async def on_member_join(member):
 		print("joined")

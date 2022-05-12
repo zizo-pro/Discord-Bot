@@ -59,6 +59,7 @@ def get_users_from_db():
 	global lol
 	cr.execute("SELECT id FROM users")
 	lol = cr.fetchall()
+
 #Delete Bad Words#
 @client.listen('on_message')
 async def BadWords(message):
@@ -94,6 +95,20 @@ async def mention(message):
 	await message.message.add_reaction(emoji="👍")
 	await message.message.add_reaction(emoji="😂")
 	await message.message.add_reaction(emoji="💖")
+	await message.message.add_reaction(emoji="💋")
+	await message.message.add_reaction(emoji="😴")
+	await message.message.add_reaction(emoji="🤑")
+	await message.message.add_reaction(emoji="🤓")
+	await message.message.add_reaction(emoji="💩")
+	await message.message.add_reaction(emoji="😶")
+	await message.message.add_reaction(emoji="😈")
+	await message.message.add_reaction(emoji="🤏")
+	await message.message.add_reaction(emoji="🎮")
+	await message.message.add_reaction(emoji="🍔")
+	await message.message.add_reaction(emoji="🍟")
+	await message.message.add_reaction(emoji="🍕")
+	await message.message.add_reaction(emoji="⬛")
+	await message.message.add_reaction(emoji="🤩")
 	await message.channel.send(f"{message.author.mention} done")
 
 @client.command()
@@ -106,12 +121,12 @@ async def add_bad_word(message):
 		cr.execute(f"INSERT INTO bad_words (bad_word) VALUES ('{msg}')")
 		db.commit()
 		get_bad_words()
-		await message.channel.send(f"Word added ||{msg}||")
+		await message.channel.send(f"Word add ||{msg}||")
 
 @client.command()
 async def id(message):
 	print(message.author.id)
 	print(message.author)
 
-# keep_alive()
+keep_alive()
 client.run(read_token())
