@@ -89,14 +89,14 @@ async def BadWords(message):
 			else:
 				cr.execute(f"UPDATE ranks SET XP = '{new_xp}' WHERE id = '{id}'")
 			db.commit()
-	elif id in users and "BOT" not in str(message.author.roles):
+	elif id not in users and "BOT" not in str(message.author.roles):
 		cr.execute(f"INSERT INTO users (user_name,id,no_of_BD) VALUES ('{username}','{id}','0')")
 		db.commit()
 		cr.execute(f"INSERT INTO ranks (id,XP,lvl) VALUES ('{id}','{int(0)}','{int(0)}')")
 		db.commit()
 
 	for txt in Blocked_Words:
-		if "Admin" not in str(message.author.roles) and txt in str(message.content.lower()) and "BOT" not in str(message.author.roles):
+		if id in users and "Admin" not in str(message.author.roles) and txt in str(message.content.lower()) and "BOT" not in str(message.author.roles):
 			cr.execute(f"SELECT no_of_BD FROM users where id = '{id}'")
 			BD = cr.fetchone()
 			new_BD = int(BD[0])+1
@@ -153,17 +153,17 @@ async def صباحو(message):
 # Audit Log (any message edit)
 @client.event
 async def on_message_edit(before, after):
-	await client.get_channel(958072130598219847).send(
-		f'{before.author} edited a message in <#{before.channel.id}> \n'
-		f'Before: {before.content}\n'
-		f'After: {after.content}\n'
-		'==============================================================='
-	)
+		await client.get_channel(958072130598219847).send(
+			f'{before.author} edited a message in <#{before.channel.id}> \n'
+			f'Before: {before.content}\n'
+			f'After: {after.content}\n'
+			'==============================================================='
+		)
 
 @client.command()
 async def بعبص(message, member:discord.Member):
 	author = message.author
 	await message.channel.send(f"{author.mention} بعبص {member.mention} \n https://tenor.com/view/%D8%AE%D8%AF-%D8%A8%D8%B9%D8%A8%D9%88%D8%B5-raise-the-roof-dance-gif-12930921")
 
-# keep_alive()
+keep_alive()
 client.run(read_token())
