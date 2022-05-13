@@ -1,3 +1,5 @@
+from pickle import TRUE
+from turtle import title
 import discord
 from discord.ext import commands
 from keep_alive import keep_alive
@@ -119,14 +121,14 @@ async def rank(message):
 	await message.channel.send(f"XP : {r[0]}/{int(r[1]*100)} , LEVEL : {r[1]}")
 
 @client.command()
-async def ranks(message):
+async def top(message):
 	cr.execute(f"SELECT XP,lvl,id FROM ranks ORDER BY XP DESC")
 	r = cr.fetchall()
 	ha = []
 	for i in range(len(r)):
 		ha.append(f"#{i+1} | [{get_user_name(r[i][2])}] | [lvl : {r[i][1]}]")
 	print(ha)
-	emb = discord.Embed(title="Ranks",description="\n".join(ha),color=0x00FF00)
+	emb = discord.Embed(title="Top-Ranks",description="\n".join(ha),color=0x00FF00)
 	await message.channel.send(embed=emb)
 
 @client.command()
@@ -152,7 +154,8 @@ async def صباحو(message):
 
 # Audit Log (any message edit)
 @client.event
-async def on_message_edit(before, after):
+async def on_message_edit(before, after, message):
+	if "BOT" not in str(message.author.roles):
 		await client.get_channel(958072130598219847).send(
 			f'{before.author} edited a message in <#{before.channel.id}> \n'
 			f'Before: {before.content}\n'
@@ -165,5 +168,20 @@ async def بعبص(message, member:discord.Member):
 	author = message.author
 	await message.channel.send(f"{author.mention} بعبص {member.mention} \n https://tenor.com/view/%D8%AE%D8%AF-%D8%A8%D8%B9%D8%A8%D9%88%D8%B5-raise-the-roof-dance-gif-12930921")
 
-keep_alive()
+@client.command()
+async def avatar(ctx, *, member:discord.Member=None):
+	if member == None :
+		member = ctx.author
+		UserAvatar = member.avatar_url
+		emb = discord.Embed(title = f"{member.name}'s Avatar", description="Look , He's so SEXY")
+		emb.set_image(url = UserAvatar)
+		await ctx.send(embed = emb)
+
+	elif member != None :
+		UserAvatar = member.avatar_url
+		emb = discord.Embed(title = f"{member.name}'s Avatar", description="Look , He's so SEXY")
+		emb.set_image(url = UserAvatar)
+		await ctx.send(embed = emb)
+
+# keep_alive()
 client.run(read_token())
