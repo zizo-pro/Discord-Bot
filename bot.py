@@ -1,10 +1,17 @@
+import asyncio
+from msilib.schema import Component
 from pickle import TRUE
+from re import X
 from turtle import title
+from click import pass_context
 import discord
 from discord.ext import commands
 from keep_alive import keep_alive
 from discord_components import DiscordComponents, Button, ButtonStyle
 import sqlite3
+from discord.utils import get
+
+
 
 db = sqlite3.connect("bot_database.db")
 cr = db.cursor()
@@ -57,9 +64,12 @@ async def button(ctx):
 				Button(style=ButtonStyle.red,
 				label="Button 2")]])
 
+
 	res = await client.wait_for("button_click")
+
 	if res.channel == ctx.channel :
 		await res.message.channel.send(EmojiLink)
+
 
 def get_users_from_db():
 	global users
@@ -107,7 +117,6 @@ async def BadWords(message):
 			await message.channel.purge(limit=1)
 			await message.channel.send("Bad Word :shushing_face:")
 
-
 @client.event
 async def on_member_join(member):
 	print("member joined")
@@ -154,8 +163,8 @@ async def صباحو(message):
 
 # Audit Log (any message edit)
 @client.event
-async def on_message_edit(before, after, message):
-	if "BOT" not in str(message.author.roles):
+async def on_message_edit(before, after):
+	if "BOT" not in str(before.author.roles):
 		await client.get_channel(958072130598219847).send(
 			f'{before.author} edited a message in <#{before.channel.id}> \n'
 			f'Before: {before.content}\n'
@@ -163,25 +172,73 @@ async def on_message_edit(before, after, message):
 			'==============================================================='
 		)
 
+	if "BOT"in str(before.author.roles):
+		pass
+
 @client.command()
 async def بعبص(message, member:discord.Member):
 	author = message.author
-	await message.channel.send(f"{author.mention} بعبص {member.mention} \n https://tenor.com/view/%D8%AE%D8%AF-%D8%A8%D8%B9%D8%A8%D9%88%D8%B5-raise-the-roof-dance-gif-12930921")
+	await message.channel.send(f"البيه ده{author.mention} بعبص الشخص ده {member.mention} \n https://tenor.com/view/%D8%AE%D8%AF-%D8%A8%D8%B9%D8%A8%D9%88%D8%B5-raise-the-roof-dance-gif-12930921")
 
 @client.command()
 async def avatar(ctx, *, member:discord.Member=None):
 	if member == None :
 		member = ctx.author
-		UserAvatar = member.avatar_url
+		UserAvatar = member.avatar_url_as(size=4096)
 		emb = discord.Embed(title = f"{member.name}'s Avatar", description="Look , He's so SEXY")
 		emb.set_image(url = UserAvatar)
 		await ctx.send(embed = emb)
 
 	elif member != None :
-		UserAvatar = member.avatar_url
+		UserAvatar = member.avatar_url_as(size=4096)
 		emb = discord.Embed(title = f"{member.name}'s Avatar", description="Look , He's so SEXY")
 		emb.set_image(url = UserAvatar)
 		await ctx.send(embed = emb)
+
+
+@client.command()
+async def spam(message, member:discord.Member=None):
+	count = 5
+	if member != None :
+		while count > 0 :
+			await message.channel.send(member.mention)
+			count = count - 1
+
+	elif member == None :
+		while count > 0 :
+			await message.channel.send(count)
+			count = count - 1
+
+@client.command(pass_context = True)
+async def join(ctx):
+	#if author is in channel
+	if (ctx.author.voice):
+		#if bot isnt in ANY channels
+		voice_client = get(ctx.bot.voice_clients, guild=ctx.guild)
+		if voice_client == None :
+			channel = ctx.message.author.voice.channel
+			await channel.connect()
+		#if bot in channel
+		else :
+			#if in the SAME channel
+			if (ctx.voice_client.channel.id) == (ctx.message.author.voice.channel.id) :
+				await ctx.send("I am in the same voice channel")
+			#if in ANOTHER channel
+			elif (ctx.voice_client.channel.id) != (ctx.message.author.voice.channel.id) :
+				await ctx.guild.voice_client.disconnect()
+				channel = ctx.message.author.voice.channel
+				await channel.connect()
+	#if author isnt in ANY channels
+	else :
+		await ctx.send("You are not in a voice channel, you must be in a voice channnel to run this command!")
+
+@client.command(pass_context = True)
+async def leave(ctx) :
+	if (ctx.voice_client) :
+		await ctx.guild.voice_client.disconnect()
+		await ctx.send("I left the voice channel")
+	else :
+		await ctx.send("I am not in a voice channel")
 
 # keep_alive()
 client.run(read_token())
