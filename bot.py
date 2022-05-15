@@ -6,6 +6,7 @@ from turtle import title
 from click import pass_context
 import discord
 from discord.ext import commands
+from discord.ext.commands import has_permissions
 from keep_alive import keep_alive
 from discord_components import DiscordComponents, Button, ButtonStyle
 import sqlite3
@@ -122,6 +123,25 @@ async def on_member_join(member):
 	print("member joined")
 	emb=discord.Embed(title="NEW MEMBER",description=f"Thanks {member.name} for joining!")
 	await client.get_channel(839671710856773632).send(embed=emb)
+	await member.add_roles("Bystaders")
+
+@client.command(pass_context=True)
+@commands.has_permissions(manage_roles=True)
+async def role(ctx, user: discord.Member,role:discord.Role):
+	if role in user.roles:
+		await ctx.send("The user has this role already")
+	else:
+		await user.add_roles(role)
+
+@client.command(pass_context=True)
+@commands.has_permissions(manage_roles=True)
+async def removerole(ctx, user: discord.Member,role:discord.Role):
+	if role not in user.roles:
+		await ctx.send("The user dont have this role already")
+	else:
+		await user.remove_roles(role)
+
+
 
 @client.command()
 async def rank(message):
@@ -131,12 +151,11 @@ async def rank(message):
 
 @client.command()
 async def top(message):
-	cr.execute(f"SELECT XP,lvl,id FROM ranks ORDER BY XP DESC")
+	cr.execute(f"SELECT XP,lvl,id FROM ranks ORDER BY lvl DESC ")
 	r = cr.fetchall()
 	ha = []
 	for i in range(len(r)):
 		ha.append(f"#{i+1} | [{get_user_name(r[i][2])}] | [lvl : {r[i][1]}]")
-	print(ha)
 	emb = discord.Embed(title="Top-Ranks",description="\n".join(ha),color=0x00FF00)
 	await message.channel.send(embed=emb)
 
