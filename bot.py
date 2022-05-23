@@ -1,4 +1,5 @@
 import asyncio
+from pydoc import describe
 from turtle import title
 import discord
 from discord.ext import commands
@@ -7,6 +8,8 @@ from keep_alive import keep_alive
 from discord_components import DiscordComponents, Button, ButtonStyle
 import sqlite3
 from discord.utils import get
+import datetime
+# from disco.types.message import MessageEmbed
 
 
 
@@ -123,7 +126,7 @@ async def on_member_join(member):
 
 @client.command(pass_context=True)
 @commands.has_permissions(manage_roles=True)
-async def role(ctx, user: discord.Member,role:discord.Role):
+async def give_role(ctx, user: discord.Member,role:discord.Role):
 	if role in user.roles:
 		await ctx.send("The user has this role already")
 	else:
@@ -284,6 +287,24 @@ async def leave(ctx) :
 		await ctx.send("I left the voice channel")
 	else :
 		await ctx.send("I am not in a voice channel")
+
+@client.command()
+async def info(ctx):
+    emb = discord.Embed(title = (f"Welcome {ctx.author}"),description = "Test",color = 0x6B5B95)
+    emb.add_field(name = "Account Level",inline = True,value="Your level in db")
+    emb.add_field(name = "Roles",inline = True,value= "Your roles in db")
+    dateY = ctx.message.author.created_at.strftime("%Y")
+    dateM = ctx.message.author.created_at.strftime("%m")
+    dateD = ctx.message.author.created_at.strftime("%d")
+    date2 = datetime.datetime.today().strftime("%Y/%m/%d")
+    d2 = datetime.datetime(int(dateY), int(dateM), int(dateD))
+    x = d2.strftime("%Y/%m/%d")
+    dt1 = datetime.datetime.strptime(x,"%Y/%m/%d")
+    dt2 = datetime.datetime.strptime(date2,"%Y/%m/%d")
+    d = dt2 - dt1
+    ind = str(d).find(",")
+    emb.add_field(name = "Account Age",inline = True,value=str(d)[:ind])
+    await ctx.send(embed=emb)
 
 # keep_alive()
 client.run(read_token())
