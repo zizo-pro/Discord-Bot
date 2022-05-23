@@ -194,6 +194,35 @@ async def on_message_edit(before, after):
 	if "BOT"in str(before.author.roles):
 		pass
 
+# Audit Log (any delete of edit)
+# @client.event
+# async def on_message_edit(before, after):
+# 	if "BOT" not in str(before.author.roles):
+# 		await client.get_channel(958072130598219847).send(
+# 			f'{before.author} edited a message in <#{before.channel.id}> \n'
+# 			f'Before: {before.content}\n'
+# 			f'After: {after.content}\n'
+# 			'==============================================================='
+# 		)
+
+# 	if "BOT"in str(before.author.roles):
+# 		pass
+
+# # Audit Log (any delete of Message)
+# @client.event
+# async def on_message_delete(before):
+# 	async for entry in before.guild.audit_logs(limit=1,action=discord.AuditLogAction.message_delete):
+# 		deleter = entry.user
+# 		print(f"{deleter.name} deleted message by {before.author.name}")
+
+# 		await client.get_channel(958072130598219847).send(
+# 		f"I've deleted a message in <#{before.channel.id}> \n"
+# 		f'Message: {before.content}\n'
+# 		f'Author: {before.author}'
+# 		# f'Message id: {before.Message.id}'
+# 		'==============================================================='
+# 	)
+
 @client.command()
 async def بعبص(message, member:discord.Member):
 	author = message.author
