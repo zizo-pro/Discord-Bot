@@ -1,9 +1,5 @@
 import asyncio
-from msilib.schema import Component
-from pickle import TRUE
-from re import X
 from turtle import title
-from click import pass_context
 import discord
 from discord.ext import commands
 from discord.ext.commands import has_permissions
@@ -147,7 +143,8 @@ async def removerole(ctx, user: discord.Member,role:discord.Role):
 async def rank(message):
 	cr.execute(f"SELECT XP,lvl FROM ranks WHERE id = '{message.author.id}'")
 	r = cr.fetchone()
-	await message.channel.send(f"XP : {r[0]}/{int(r[1]*100)} , LEVEL : {r[1]}")
+	emb =  discord.Embed(title="",description=f"XP : {r[0]} / {int(r[1])*100} , LVL : {r[1]}")
+	await message.channel.send(embed=emb)
 
 @client.command()
 async def top(message):
