@@ -52,7 +52,8 @@ async def on_ready():
 
 @client.command()
 async def ping(ctx):
-	await ctx.send('pong!')
+	await ctx.send((f'Pong! In {round(client.latency * 1000)}ms'))
+	
 
 @client.command()
 async def button(ctx):
@@ -289,22 +290,42 @@ async def leave(ctx) :
 		await ctx.send("I am not in a voice channel")
 
 @client.command()
-async def info(ctx):
-    emb = discord.Embed(title = (f"Welcome {ctx.author}"),description = "Test",color = 0x6B5B95)
-    emb.add_field(name = "Account Level",inline = True,value="Your level in db")
-    emb.add_field(name = "Roles",inline = True,value= "Your roles in db")
-    dateY = ctx.message.author.created_at.strftime("%Y")
-    dateM = ctx.message.author.created_at.strftime("%m")
-    dateD = ctx.message.author.created_at.strftime("%d")
-    date2 = datetime.datetime.today().strftime("%Y/%m/%d")
-    d2 = datetime.datetime(int(dateY), int(dateM), int(dateD))
-    x = d2.strftime("%Y/%m/%d")
-    dt1 = datetime.datetime.strptime(x,"%Y/%m/%d")
-    dt2 = datetime.datetime.strptime(date2,"%Y/%m/%d")
-    d = dt2 - dt1
-    ind = str(d).find(",")
-    emb.add_field(name = "Account Age",inline = True,value=str(d)[:ind])
-    await ctx.send(embed=emb)
+async def info(ctx, member:discord.Member=None):
+	if member == None:
+		emb = discord.Embed(title = (f"Welcome {ctx.author}"),description = "Test",color = 0x6B5B95)
+		emb.add_field(name = "Account Level",inline = True,value="Your level in db")
+		emb.add_field(name = "Roles",inline = True,value= "Your roles in db")
+		dateY = ctx.message.author.created_at.strftime("%Y")
+		dateM = ctx.message.author.created_at.strftime("%m")
+		dateD = ctx.message.author.created_at.strftime("%d")
+		date2 = datetime.datetime.today().strftime("%Y/%m/%d")
+		d2 = datetime.datetime(int(dateY), int(dateM), int(dateD))
+		x = d2.strftime("%Y/%m/%d")
+		dt1 = datetime.datetime.strptime(x,"%Y/%m/%d")
+		dt2 = datetime.datetime.strptime(date2,"%Y/%m/%d")
+		d = dt2 - dt1
+		ind = str(d).find(",")
+		emb.add_field(name = "Account Age",inline = True,value=str(d)[:ind])
+		await ctx.send(embed=emb)
+
+	elif member != None :
+		user = client.get_user(member.id)
+		emb = discord.Embed(title = (f"Welcome {ctx.author}, This is informations of\n{member}"),description = "Test",color = 0x6B5B95)
+		emb.add_field(name = "Account Level",inline = True,value="His level in db")
+		emb.add_field(name = "Roles",inline = True,value= "His roles in db")
+		dateY = user.created_at.strftime("%Y")
+		dateM = user.created_at.strftime("%m")
+		dateD = user.created_at.strftime("%d")
+		date2 = datetime.datetime.today().strftime("%Y/%m/%d")
+		d2 = datetime.datetime(int(dateY), int(dateM), int(dateD))
+		x = d2.strftime("%Y/%m/%d")
+		dt1 = datetime.datetime.strptime(x,"%Y/%m/%d")
+		dt2 = datetime.datetime.strptime(date2,"%Y/%m/%d")
+		d = dt2 - dt1
+		ind = str(d).find(",")
+		emb.add_field(name = "Account Age",inline = True,value=str(d)[:ind])
+		await ctx.send(embed=emb)
+
 
 # keep_alive()
 client.run(read_token())
