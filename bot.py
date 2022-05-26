@@ -9,6 +9,8 @@ from discord_components import DiscordComponents, Button, ButtonStyle
 import sqlite3
 from discord.utils import get
 import datetime
+import DiscordUtils
+import discord_slash
 # from disco.types.message import MessageEmbed
 
 
@@ -16,6 +18,7 @@ import datetime
 db = sqlite3.connect("bot_database.db")
 cr = db.cursor()
 EmojiLink = "0"
+music = DiscordUtils.Music()
 
 
 def read_token():
@@ -80,6 +83,32 @@ def get_users_from_db():
 	for i in range(len(lol)):
 		users.append(lol[i][0])
 
+def get_user_XP_LVL(ig):
+	cr.execute(f"SELECT XP,lvl FROM ranks WHERE id = '{ig}'")
+	xpdata = cr.fetchone()
+	return xpdata
+@client.command()
+async def tes(ctx):
+	player = music.get_player(guild_id = ctx.guild.id)
+	if not player:
+		player = music.create_player(ctx,fmmpeg_error_betterfix=True)
+	if not ctx.voice_client.is_playing():
+		await player.queue("azan.mp3")
+		song = await player.play()
+	else:
+		song = await player.queue(url,search=True)
+
+@client.command()
+async def test(ctx,*,url):
+	player = music.get_player(guild_id = ctx.guild.id)
+	if not player:
+		player = music.create_player(ctx,fmmpeg_error_betterfix=True)
+	if not ctx.voice_client.is_playing():
+		await player.queue(url , search=True)
+		song = await player.play()
+	else:
+		song = await player.queue(url,search=True)
+
 #Delete Bad Words#
 @client.listen('on_message')
 async def BadWords(message):
@@ -140,8 +169,6 @@ async def removerole(ctx, user: discord.Member,role:discord.Role):
 		await ctx.send("The user dont have this role already")
 	else:
 		await user.remove_roles(role)
-
-
 
 @client.command()
 async def rank(message):
@@ -293,7 +320,7 @@ async def leave(ctx) :
 async def info(ctx, member:discord.Member=None):
 	if member == None:
 		emb = discord.Embed(title = (f"Welcome {ctx.author}"),description = "Test",color = 0x6B5B95)
-		emb.add_field(name = "Account Level",inline = True,value="Your level in db")
+		emb.add_field(name = "Account Level",inline = True,value=get_user_XP_LVL(ctx.author.id)[1])
 		emb.add_field(name = "Roles",inline = True,value= "Your roles in db")
 		dateY = ctx.message.author.created_at.strftime("%Y")
 		dateM = ctx.message.author.created_at.strftime("%m")
@@ -304,14 +331,20 @@ async def info(ctx, member:discord.Member=None):
 		dt1 = datetime.datetime.strptime(x,"%Y/%m/%d")
 		dt2 = datetime.datetime.strptime(date2,"%Y/%m/%d")
 		d = dt2 - dt1
-		ind = str(d).find(",")
-		emb.add_field(name = "Account Age",inline = True,value=str(d)[:ind])
+		ind = str(d).find("d")
+		years = int(str(d)[:ind])/365
+		ins = str(years).find(".")
+		days = int(str(years)[ins+1:])
+		hi = len(str(days)) 
+		n ="1"
+		new = days/int(n.ljust(hi + len(str(n)),'0'))
+		emb.add_field(name = "Account Age",inline = True,value=f"{str(years)[:ins]} year {int(new*365)} day")
 		await ctx.send(embed=emb)
 
 	elif member != None :
 		user = client.get_user(member.id)
 		emb = discord.Embed(title = (f"Welcome {ctx.author}, This is informations of\n{member}"),description = "Test",color = 0x6B5B95)
-		emb.add_field(name = "Account Level",inline = True,value="His level in db")
+		emb.add_field(name = "Account Level",inline = True,value=get_user_XP_LVL(member.id)[1])
 		emb.add_field(name = "Roles",inline = True,value= "His roles in db")
 		dateY = user.created_at.strftime("%Y")
 		dateM = user.created_at.strftime("%m")
@@ -322,8 +355,14 @@ async def info(ctx, member:discord.Member=None):
 		dt1 = datetime.datetime.strptime(x,"%Y/%m/%d")
 		dt2 = datetime.datetime.strptime(date2,"%Y/%m/%d")
 		d = dt2 - dt1
-		ind = str(d).find(",")
-		emb.add_field(name = "Account Age",inline = True,value=str(d)[:ind])
+		ind = str(d).find("d")
+		years = int(str(d)[:ind])/365
+		ins = str(years).find(".")
+		days = int(str(years)[ins+1:])
+		hi = len(str(days)) 
+		n ="1"
+		new = days/int(n.ljust(hi + len(str(n)),'0'))
+		emb.add_field(name = "Account Age",inline = True,value=f"{str(years)[:ins]} year {int(new*365)} day")
 		await ctx.send(embed=emb)
 
 
