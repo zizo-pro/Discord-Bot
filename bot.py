@@ -1,6 +1,3 @@
-import asyncio
-from pydoc import describe
-from turtle import title
 import discord
 from discord.ext import commands
 from discord.ext.commands import has_permissions
@@ -10,7 +7,7 @@ import sqlite3
 from discord.utils import get
 import datetime
 import DiscordUtils
-import discord_slash
+# import discord_slash
 # from disco.types.message import MessageEmbed
 
 
@@ -47,6 +44,16 @@ def get_user_name(id):
 	user_ame = cr.fetchone()
 	user_name = user_ame[0]
 	return user_name
+
+def fill():
+	cr.execute("SELECT id FROM users")
+	ID = cr.fetchall()
+	return ID
+
+@client.command()
+async def lol(ctx):
+	for i in range(len(fill())):
+		l = fill()[i][0]
 
 @client.event
 async def on_ready():
@@ -109,7 +116,7 @@ async def test(ctx,*,url):
 	else:
 		song = await player.queue(url,search=True)
 
-#Delete Bad Words#
+#Delete Bad Words
 @client.listen('on_message')
 async def BadWords(message):
 	if message.content.startswith('hug'):
@@ -118,34 +125,35 @@ async def BadWords(message):
 	username = message.author
 	get_users_from_db()
 	if id in users:
-			cr.execute(f"SELECT XP,lvl FROM ranks WHERE id = '{id}'")
-			DBxp = cr.fetchone()
-			XP = DBxp[0]
-			lvl = DBxp[1]
-			new_xp = int(XP) + 10
-			tg_XP = int(lvl)*100
-			if new_xp >= tg_XP and "BOT" not in str(message.author.roles):
-				lvl +=1
-				cr.execute(f"UPDATE ranks SET XP = '0', lvl = {lvl} WHERE id = '{id}'")
-				await message.channel.send(f"Good Job {username.mention} for advancing to level: {lvl}")
-			else:
-				cr.execute(f"UPDATE ranks SET XP = '{new_xp}' WHERE id = '{id}'")
+		cr.execute(f"SELECT XP,lvl FROM ranks WHERE id = '{id}'")
+		DBxp = cr.fetchone()
+		XP = DBxp[0]
+		lvl = DBxp[1]
+		new_xp = int(XP) + 10
+		tg_XP = int(lvl)*100
+		if new_xp >= tg_XP and "BOT" not in str(message.author.roles):
+			lvl +=1
+			cr.execute(f"UPDATE ranks SET XP = '0', lvl = {lvl} WHERE id = '{id}'")
+			emb=discord.Embed(title="Congrats",description=f"Good Job {username.mention} for advancing to level: {lvl}")
+			await message.channel.send(embed=emb)
+		else:
+			cr.execute(f"UPDATE ranks SET XP = '{new_xp}' WHERE id = '{id}'")
 			db.commit()
 	elif id not in users and "BOT" not in str(message.author.roles):
 		cr.execute(f"INSERT INTO users (user_name,id,no_of_BD) VALUES ('{username}','{id}','0')")
 		db.commit()
 		cr.execute(f"INSERT INTO ranks (id,XP,lvl) VALUES ('{id}','{int(0)}','{int(0)}')")
 		db.commit()
-
+		print(message.content.lower())
 	for txt in Blocked_Words:
-		if id in users and "Admin" not in str(message.author.roles) and txt in str(message.content.lower()) and "BOT" not in str(message.author.roles):
-			cr.execute(f"SELECT no_of_BD FROM users where id = '{id}'")
-			BD = cr.fetchone()
-			new_BD = int(BD[0])+1
-			cr.execute(f"UPDATE users SET no_of_BD = '{new_BD}' WHERE id = '{id}'")
-			db.commit()
-			await message.channel.purge(limit=1)
-			await message.channel.send("Bad Word :shushing_face:")
+		if txt in str(message.content.lower()):
+				cr.execute(f"SELECT no_of_BD FROM users where id = '{id}'")
+				BD = cr.fetchone()
+				new_BD = int(BD[0])+1
+				cr.execute(f"UPDATE users SET no_of_BD = '{new_BD}' WHERE id = '{id}'")
+				db.commit()
+				await message.delete()
+				await message.channel.send("Bad Word :shushing_face:")
 
 @client.event
 async def on_member_join(member):
@@ -188,12 +196,23 @@ async def top(message):
 	await message.channel.send(embed=emb)
 
 @client.command()
-async def add_bad_word(message):
+async def addbdword(message):
 	ind = str(message.message.content.find(" "))
 	msg = message.message.content[int(ind)+1:]
 	if msg in Blocked_Words:
 		await message.channel.send(f"Already Exists")
 	else:
+		xp = get_user_XP_LVL(message.author.id)[0]
+		lvl = get_user_XP_LVL(message.author.id)[1]
+		newxp = int(xp)+5
+		tg_XP = int(lvl)*100
+		if newxp >= tg_XP and "BOT" not in str(message.author.roles):
+			lvl +=1
+			cr.execute(f"UPDATE ranks SET XP = '0', lvl = {lvl} WHERE id = '{message.author.id}'")
+			await message.channel.send(f"Good Job {username.mention} for advancing to level: {lvl}")
+		else:
+			cr.execute(f"UPDATE ranks SET XP = '{newxp}' WHERE id = '{message.author.id}'")
+
 		cr.execute(f"INSERT INTO bad_words (bad_word) VALUES ('{msg}')")
 		db.commit()
 		get_bad_words()
@@ -364,6 +383,23 @@ async def info(ctx, member:discord.Member=None):
 		new = days/int(n.ljust(hi + len(str(n)),'0'))
 		emb.add_field(name = "Account Age",inline = True,value=f"{str(years)[:ins]} year {int(new*365)} day")
 		await ctx.send(embed=emb)
+
+@client.command()
+async def about(ctx):
+	total_text_channels = len(ctx.guild.text_channels)
+	total_voice_channels = len(ctx.guild.voice_channels)
+	emb = discord.Embed(title =f"{ctx.guild.name} Info",description="Information about the server",color=discord.Color.blue())
+	emb.add_field(name="🆔server ID",value=ctx.guild.id,inline = True)
+	emb.add_field(name="📆Created On",value=ctx.guild.created_at.strftime("%d/%m/%Y"),inline=True)
+	emb.add_field(name="👑owner",value=ctx.guild.owner,inline=True)
+	emb.add_field(name="👥Member",value=f"{ctx.guild.member_count} Members",inline=True)
+	emb.add_field(name="💬Channels", value = f'{total_text_channels} Text | {total_voice_channels} Voice', inline = True)
+	emb.add_field(name="🌎Region",value="Middle East",inline=True)
+	await ctx.send(embed=emb)
+
+@client.command()
+async def etm(ctx):
+	await ctx.send("a7a")
 
 
 # keep_alive()
