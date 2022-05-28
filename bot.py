@@ -363,7 +363,7 @@ async def about(ctx):
 	emb.add_field(name="💬Channels", value = f'{total_text_channels} Text | {total_voice_channels} Voice', inline = True)
 	emb.add_field(name="🌎Region",value="Middle East",inline=True)
 	await ctx.send(embed=emb)
-git
+
 @client.command()
 async def etm(ctx):
 	await ctx.send("a7a")
