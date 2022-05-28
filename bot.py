@@ -157,16 +157,25 @@ async def BadWords(message):
 
 @client.event
 async def on_member_join(member):
-	print("member joined")
+	print(member)
+	print(member.id)
 	emb=discord.Embed(title="NEW MEMBER",description=f"Thanks {member.name} for joining!")
+	if member.id in users:
+		pass
+	else:
+		cr.execute(f"INSERT INTO users (user_name,id,no_of_BD) VALUES ('{member}','{member.id}','0')")
+		db.commit()
+		cr.execute(f"INSERT INTO ranks (id,XP,lvl) VALUES ('{member.id}','{int(0)}','{int(0)}')")
+		db.commit()
 	await client.get_channel(839671710856773632).send(embed=emb)
-	await member.add_roles("Bystaders")
+	await member.id.add_roles("Bystaders")
 
 @client.command(pass_context=True)
 @commands.has_permissions(manage_roles=True)
 async def give_role(ctx, user: discord.Member,role:discord.Role):
 	if role in user.roles:
 		await ctx.send("The user has this role already")
+		print(user)
 	else:
 		await user.add_roles(role)
 
