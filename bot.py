@@ -24,6 +24,7 @@ def read_token():
 				return token
 intents = discord.Intents.all()
 client = commands.Bot(command_prefix = "!" ,intents=intents)
+
 def get_bad_words():
 	global Blocked_Words
 	cr.execute("SELECT bad_word FROM bad_words")
@@ -63,7 +64,6 @@ async def on_ready():
 @client.command()
 async def ping(ctx):
 	await ctx.send((f'Pong! In {round(client.latency * 1000)}ms'))
-	
 
 @client.command()
 async def button(ctx):
@@ -81,7 +81,6 @@ async def button(ctx):
 	if res.channel == ctx.channel :
 		await res.message.channel.send(EmojiLink)
 
-
 def get_users_from_db():
 	global users
 	cr.execute("SELECT id FROM users")
@@ -94,6 +93,7 @@ def get_user_XP_LVL(ig):
 	cr.execute(f"SELECT XP,lvl FROM ranks WHERE id = '{ig}'")
 	xpdata = cr.fetchone()
 	return xpdata
+
 @client.command()
 async def tes(ctx):
 	player = music.get_player(guild_id = ctx.guild.id)
@@ -178,6 +178,7 @@ async def give_role(ctx, user: discord.Member,role:discord.Role):
 		print(user)
 	else:
 		await user.add_roles(role)
+		await client.get_channel(958072130598219847).send(F"{user} has been givin {role} Role")
 
 @client.command(pass_context=True)
 @commands.has_permissions(manage_roles=True)
@@ -239,12 +240,14 @@ async def صباحو(message):
 # Audit Log (any delete of Message)
 @client.event
 async def on_message_delete(message):
-		await client.get_channel(958072130598219847).send(
-		f"A message was deleted in <#{message.channel.id}> \n"
-		f'Message: {message.content}\n'
-		f'Author: {message.author}\n'
-		'==============================================================='
-	)
+	date = message.created_at.strftime("%Y/%m/%d, %H:%M:%S")
+	emb = discord.Embed(title = (f"Message deletion"),description = f"A message was deleted in <#{message.channel.id}>",color = 0x6B5B95)
+	emb.add_field(name = "Message Content", inline = False, value = message.content)
+	emb.add_field(name = "Message Author", inline = False, value = message.author)
+	emb.add_field(name = "Sent at", inline = False, value = date)
+	emb.set_footer(text=" ================\n🔥SECRET 101⚡SCR🔥")
+	await client.get_channel(958072130598219847).send(embed=emb)
+	await client.get_channel(958072130598219847).send('===============================================================')
 
 @client.command()
 async def بعبص(message, member:discord.Member):
@@ -374,9 +377,26 @@ async def about(ctx):
 	await ctx.send(embed=emb)
 
 @client.command()
-async def etm(ctx):
-	await ctx.send("a7a")
+async def status(ctx, member:discord.Member=None) :
+	if member == None :
+		if str(ctx.author.status) == "online" :
+			await ctx.send(f"{ctx.author.mention} is online")
 
+		elif str(ctx.author.status) == "offline" :
+			await ctx.send(f"{ctx.author.mention} if offline")
+
+	elif member != None :
+		if str(member.status) == "online" :
+			await ctx.send(f"{member.mention} is online")
+
+		elif str(member.status) == "offline" :
+			await ctx.send(f"{member.mention} is offline")
+
+		elif str(member.status) == "idle" :
+			await ctx.send(f"{member.mention} is idle")
+
+		else :
+			await ctx.send(f"{member.mention} dont want to get disturbed")
 
 # keep_alive()
 client.run(read_token())
