@@ -257,8 +257,8 @@ async def صباحو(message):
 
 # Audit Log (any delete of Message)
 @client.event
-async def on_message_delete(message):
-	date = message.created_at.today().strftime("%Y/%m/%d, %I:%M:%S")
+async def on_message_delete(message): #.replace(tzinfo=timezone('UTC+2'))
+	date = message.created_at.strftime("%Y/%m/%d, %I:%M:%S")
 	date_now = datetime.datetime.today().strftime("%Y/%m/%d, %I:%M:%S")
 	emb = discord.Embed(title = (f"Message deletion"),description = f"A message was deleted in <#{message.channel.id}>",color = 0x6B5B95)
 	emb.add_field(name = "Message Content", inline = False, value = message.content)
