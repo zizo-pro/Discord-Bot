@@ -119,8 +119,10 @@ async def test(ctx,*,url):
 #Delete Bad Words
 @client.listen('on_message')
 async def BadWords(message):
-	if message.content.startswith('hug'):
-		await message.channel.send(f"hugs {message.author.mention}")
+	cr.execute("SELECT value FROM STATS WHERE item = 'messages'")
+	mes = cr.fetchone()
+	new_mes = int(mes[0])+1
+	cr.execute(f"UPDATE STATS SET value ='{new_mes}' WHERE item = 'messages'")
 	id = message.author.id
 	username = message.author
 	get_users_from_db()
@@ -146,7 +148,7 @@ async def BadWords(message):
 		db.commit()
 		print(message.content.lower())
 	for txt in Blocked_Words:
-		if txt in str(message.content.lower()):
+		if txt in str(message.content.lower()) and "Admin" not in str(message.author.roles):
 				cr.execute(f"SELECT no_of_BD FROM users where id = '{id}'")
 				BD = cr.fetchone()
 				new_BD = int(BD[0])+1
@@ -154,6 +156,22 @@ async def BadWords(message):
 				db.commit()
 				await message.delete()
 				await message.channel.send("Bad Word :shushing_face:")
+				cr.execute("SELECT value FROM STATS WHERE item = 'no_bad_words'")
+				badwrd = cr.fetchone()
+				new_badwrd = int(badwrd[0])+1
+				cr.execute(f"UPDATE STATS SET value ='{new_badwrd}' WHERE item = 'no_bad_words'")
+				db.commit()
+@client.command()
+async def STATS(ctx):
+	cr.execute("SELECT value FROM STATS WHERE item = 'no_bad_words'")
+	nobd = cr.fetchone()
+	cr.execute("SELECT value FROM STATS WHERE item = 'messages'")
+	msg = cr.fetchone()
+	cr.execute("SELECT value FROM STATS WHERE item = 'no_users'")
+	nousr = cr.fetchone()
+	await ctx.channel.send(f"no. of bad words : {nobd[0]} , no. msg : {msg[0]} , usr : {nousr[0]}")
+
+
 
 @client.event
 async def on_member_join(member):
