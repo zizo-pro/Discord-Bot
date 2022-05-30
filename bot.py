@@ -17,13 +17,14 @@ cr = db.cursor()
 EmojiLink = "0"
 music = DiscordUtils.Music()
 
+intents = discord.Intents.all()
+intents.members = True
+client = commands.Bot(command_prefix = "!" ,intents=intents)
 
 def read_token():
 		with open("token.txt","r") as f:
 				token = f.readline()
 				return token
-intents = discord.Intents.all()
-client = commands.Bot(command_prefix = "!" ,intents=intents)
 
 def get_bad_words():
 	global Blocked_Words
@@ -88,6 +89,7 @@ def get_users_from_db():
 	users = []
 	for i in range(len(lol)):
 		users.append(lol[i][0])
+get_users_from_db()
 
 def get_user_XP_LVL(ig):
 	cr.execute(f"SELECT XP,lvl FROM ranks WHERE id = '{ig}'")
@@ -95,18 +97,7 @@ def get_user_XP_LVL(ig):
 	return xpdata
 
 @client.command()
-async def tes(ctx):
-	player = music.get_player(guild_id = ctx.guild.id)
-	if not player:
-		player = music.create_player(ctx,fmmpeg_error_betterfix=True)
-	if not ctx.voice_client.is_playing():
-		await player.queue("azan.mp3")
-		song = await player.play()
-	else:
-		song = await player.queue(url,search=True)
-
-@client.command()
-async def test(ctx,*,url):
+async def play(ctx,*,url):
 	player = music.get_player(guild_id = ctx.guild.id)
 	if not player:
 		player = music.create_player(ctx,fmmpeg_error_betterfix=True)
@@ -119,10 +110,12 @@ async def test(ctx,*,url):
 #Delete Bad Words
 @client.listen('on_message')
 async def BadWords(message):
-	cr.execute("SELECT value FROM STATS WHERE item = 'messages'")
-	mes = cr.fetchone()
-	new_mes = int(mes[0])+1
-	cr.execute(f"UPDATE STATS SET value ='{new_mes}' WHERE item = 'messages'")
+	if "BOT" not in str(message.author.roles):
+		cr.execute("SELECT value FROM STATS WHERE item = 'messages'")
+		mes = cr.fetchone()
+		new_mes = int(mes[0])+1
+		cr.execute(f"UPDATE STATS SET value ='{new_mes}' WHERE item = 'messages'")
+		db.commit()
 	id = message.author.id
 	username = message.author
 	get_users_from_db()
@@ -133,7 +126,7 @@ async def BadWords(message):
 		lvl = DBxp[1]
 		new_xp = int(XP) + 10
 		tg_XP = int(lvl)*100
-		if new_xp >= tg_XP and "BOT" not in str(message.author.roles):
+		if new_xp >= tg_XP and "BOT" not in str(message.author.roles) and tg_XP != 0:
 			lvl +=1
 			cr.execute(f"UPDATE ranks SET XP = '0', lvl = {lvl} WHERE id = '{id}'")
 			emb=discord.Embed(title="Congrats",description=f"Good Job {username.mention} for advancing to level: {lvl}")
@@ -146,7 +139,6 @@ async def BadWords(message):
 		db.commit()
 		cr.execute(f"INSERT INTO ranks (id,XP,lvl) VALUES ('{id}','{int(0)}','{int(0)}')")
 		db.commit()
-		print(message.content.lower())
 	for txt in Blocked_Words:
 		if txt in str(message.content.lower()) and "Admin" not in str(message.author.roles):
 				cr.execute(f"SELECT no_of_BD FROM users where id = '{id}'")
@@ -175,9 +167,6 @@ async def STATS(ctx):
 
 @client.event
 async def on_member_join(member):
-	print(member)
-	print(member.id)
-	emb=discord.Embed(title="NEW MEMBER",description=f"Thanks {member.name} for joining!")
 	if member.id in users:
 		pass
 	else:
@@ -185,15 +174,16 @@ async def on_member_join(member):
 		db.commit()
 		cr.execute(f"INSERT INTO ranks (id,XP,lvl) VALUES ('{member.id}','{int(0)}','{int(0)}')")
 		db.commit()
+	emb=discord.Embed(title="NEW MEMBER",description=f"Thanks {member.name} for joining!")
+	role = get(member.guild.roles, id=958038471656763422)
 	await client.get_channel(839671710856773632).send(embed=emb)
-	await member.id.add_roles("Bystaders")
+	await member.add_roles(role)
 
 @client.command(pass_context=True)
 @commands.has_permissions(manage_roles=True)
 async def give_role(ctx, user: discord.Member,role:discord.Role):
 	if role in user.roles:
 		await ctx.send("The user has this role already")
-		print(user)
 	else:
 		await user.add_roles(role)
 		await client.get_channel(958072130598219847).send(F"{user} has been givin {role} Role")
@@ -417,6 +407,8 @@ async def status(ctx, member:discord.Member=None) :
 
 		else :
 			await ctx.send(f"{member.mention} dont want to get disturbed")
+
+@client.event
 
 # keep_alive()
 client.run(read_token())
