@@ -147,7 +147,8 @@ async def BadWords(message):
 				cr.execute(f"UPDATE users SET no_of_BD = '{new_BD}' WHERE id = '{id}'")
 				db.commit()
 				await message.delete()
-				await message.channel.send("Bad Word :shushing_face:")
+				# await message.channel.send("Bad Word :shushing_face:")
+				await message.channel.send("اخلاقك يا برو")
 				cr.execute("SELECT value FROM STATS WHERE item = 'no_bad_words'")
 				badwrd = cr.fetchone()
 				new_badwrd = int(badwrd[0])+1
@@ -170,7 +171,7 @@ async def on_member_join(member):
 	if member.id in users:
 		pass
 	else:
-		cr.execute(f"INSERT INTO users (user_name,id,no_of_BD) VALUES ('{member}','{member.id}','0')")
+		cr.execute(f"INSERT INTO users (user_name,id,no_of_BD,roles) VALUES ('{member}','{member.id}','0','Bystanders')")
 		db.commit()
 		cr.execute(f"INSERT INTO ranks (id,XP,lvl) VALUES ('{member.id}','{int(0)}','{int(0)}')")
 		db.commit()
@@ -185,8 +186,13 @@ async def give_role(ctx, user: discord.Member,role:discord.Role):
 	if role in user.roles:
 		await ctx.send("The user has this role already")
 	else:
+		cr.execute(f"SELECT roles FROM users WHERE user_name = '{user}'")
+		rls = cr.fetchone()[0]
+		new_rls = f"{rls},{role}"
+		cr.execute(f"UPDATE users SET roles ='{new_rls}' WHERE user_name = '{user}'")
+		db.commit()
 		await user.add_roles(role)
-		await client.get_channel(958072130598219847).send(F"{user} has been givin {role} Role")
+		await client.get_channel(958072130598219847).send(f"{user} has been given {role} Role")
 
 @client.command(pass_context=True)
 @commands.has_permissions(manage_roles=True)
@@ -194,6 +200,7 @@ async def removerole(ctx, user: discord.Member,role:discord.Role):
 	if role not in user.roles:
 		await ctx.send("The user dont have this role already")
 	else:
+		
 		await user.remove_roles(role)
 
 @client.command()
@@ -408,7 +415,6 @@ async def status(ctx, member:discord.Member=None) :
 		else :
 			await ctx.send(f"{member.mention} dont want to get disturbed")
 
-@client.event
 
 # keep_alive()
 client.run(read_token())
