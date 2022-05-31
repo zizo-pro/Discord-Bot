@@ -250,7 +250,7 @@ async def id(message):
 
 @client.command()
 async def صباحو(message):
-	await message.channel.send("ميتين دي اصطباحه قوم ذاكر يلا")
+	await message.channel.send("ميتين دي اصطباحه قوم نام يلا")
 
 # Audit Log (any delete of Message)
 @client.event
