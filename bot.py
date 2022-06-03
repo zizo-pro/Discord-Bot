@@ -237,7 +237,6 @@ async def addbdword(message):
 			await message.channel.send(f"Good Job {username.mention} for advancing to level: {lvl}")
 		else:
 			cr.execute(f"UPDATE ranks SET XP = '{newxp}' WHERE id = '{message.author.id}'")
-
 		cr.execute(f"INSERT INTO bad_words (bad_word) VALUES ('{msg}')")
 		db.commit()
 		get_bad_words()
