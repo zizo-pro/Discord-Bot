@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from discord.ext.commands import has_permissions
+from interactions import Guild
 from keep_alive import keep_alive
 from discord_components import DiscordComponents, Button, ButtonStyle
 import sqlite3
@@ -148,7 +149,7 @@ async def BadWords(message):
 				db.commit()
 				await message.delete()
 				# await message.channel.send("Bad Word :shushing_face:")
-				await message.channel.send("اخلاقك يا برو")
+				await message.channel.send("اخلاقك يا برو ")
 				cr.execute("SELECT value FROM STATS WHERE item = 'no_bad_words'")
 				badwrd = cr.fetchone()
 				new_badwrd = int(badwrd[0])+1
@@ -164,6 +165,39 @@ async def STATS(ctx):
 	nousr = cr.fetchone()
 	await ctx.channel.send(f"no. of bad words : {nobd[0]} , no. msg : {msg[0]} , usr : {nousr[0]}")
 
+@client.command()
+async def zizo(ctx):
+	cr.execute("SELECT id FROM users")
+	lll = cr.fetchall()
+	# ctx.send(user)
+	guild = client.get_guild(839639743771836456)
+	
+	for i in range(len(lll)):
+		userid = lll[i][0]
+		member = guild.get_member(userid)
+		# await ctx.send(member.mention)
+		for x in range(len(member.roles)):
+			cr.execute(f"SELECT roles FROM users WHERE id = '{userid}'")
+			g = cr.fetchone()[0]
+			if g == "" or g == None:
+				if member.roles[x] != "@everyone":
+					cr.execute(f"UPDATE users SET roles = '{member.roles[x]}' WHERE id = '{userid}'")
+			else:
+				if  member.roles[x] != "@everyone":
+					new = f"{g},{member.roles[x]}"
+					cr.execute(f"UPDATE users SET roles = '{new}' WHERE id = '{userid}'")
+@client.command()
+async def warn(message, member : discord.Member=None) :
+	if "Admin" in str(message.author.roles) :
+		await message.send(
+			f'"{member}" has been warned\n'
+			# f'Reason : {Reason}'
+			'Now he has # warns'     # replace (#) with db warns
+		)
+
+	else :
+		await message.send("Waiting Admins aproval")
+		await client.get_channel(839642523722055691).send(f"Author : {message.author.mention} \nWant's to warn {member.mention}")
 
 
 @client.event
@@ -180,6 +214,7 @@ async def on_member_join(member):
 	await client.get_channel(839671710856773632).send(embed=emb)
 	await member.add_roles(role)
 
+
 @client.command(pass_context=True)
 @commands.has_permissions(manage_roles=True)
 async def give_role(ctx, user: discord.Member,role:discord.Role):
@@ -188,8 +223,11 @@ async def give_role(ctx, user: discord.Member,role:discord.Role):
 	else:
 		cr.execute(f"SELECT roles FROM users WHERE user_name = '{user}'")
 		rls = cr.fetchone()[0]
-		new_rls = f"{rls},{role}"
-		cr.execute(f"UPDATE users SET roles ='{new_rls}' WHERE user_name = '{user}'")
+		if rls == None or rls == '':
+			cr.execute(f"UPDATE users SET roles ='{role}' WHERE user_name = '{user}'")
+		else:
+			new_rls = f"{rls},{role}"
+			cr.execute(f"UPDATE users SET roles ='{new_rls}' WHERE user_name = '{user}'")
 		db.commit()
 		await user.add_roles(role)
 		await client.get_channel(958072130598219847).send(f"{user} has been given {role} Role")
@@ -200,24 +238,39 @@ async def removerole(ctx, user: discord.Member,role:discord.Role):
 	if role not in user.roles:
 		await ctx.send("The user dont have this role already")
 	else:
-		
+		cr.execute(f"SELECT roles FROM users WHERE user_name = '{user}'")
+		roles = cr.fetchone()[0]
+		new_roles = roles.replace(f"{role}",'')
+		llrls = new_roles.replace(',,',',')
+		if llrls[0] == ",":
+			llrls = llrls[1:]
+		elif llrls[-1] == ",":
+			llrls = llrls[:-1]
+		cr.execute(f"UPDATE users SET roles = '{llrls}' WHERE id = '{user.id}'")
+		db.commit()
 		await user.remove_roles(role)
 
-@client.command()
-async def rank(message):
-	cr.execute(f"SELECT XP,lvl FROM ranks WHERE id = '{message.author.id}'")
-	r = cr.fetchone()
-	emb =  discord.Embed(title="",description=f"XP : {r[0]} / {int(r[1])*100} , LVL : {r[1]}")
-	await message.channel.send(embed=emb)
-
+@client.command(pass_context=True)
+async def rank(message, user: discord.Member=None):
+	if user == None:
+		cr.execute(f"SELECT XP,lvl FROM ranks WHERE id = '{message.author.id}'")
+		r = cr.fetchone()
+		emb =  discord.Embed(title="",description=f"XP : {r[0]} / {int(r[1])*100} , LVL : {r[1]}")
+		await message.channel.send(embed=emb)
+	else:
+		cr.execute(f"SELECT XP,lvl FROM ranks WHERE id = '{user.id}'")
+		r = cr.fetchone()
+		emb =  discord.Embed(title="",description=f"XP : {r[0]} / {int(r[1])*100} , LVL : {r[1]}")
+		await message.channel.send(embed=emb)
 @client.command()
 async def top(message):
-	cr.execute(f"SELECT XP,lvl,id FROM ranks ORDER BY lvl DESC ")
+	cr.execute(f"SELECT XP,lvl,id FROM ranks ORDER BY lvl DESC LIMIT 10")
 	r = cr.fetchall()
 	ha = []
 	for i in range(len(r)):
-		ha.append(f"#{i+1} | [{get_user_name(r[i][2])}] | [lvl : {r[i][1]}]")
-	emb = discord.Embed(title="Top-Ranks",description="\n".join(ha),color=0x00FF00)
+		if r[i][1] > 0:
+			ha.append(f"#{i+1} | [{get_user_name(r[i][2])}] | [lvl : {r[i][1]}]")
+	emb = discord.Embed(title="Top-10-Ranks",description="\n".join(ha),color=0x00FF00)
 	await message.channel.send(embed=emb)
 
 @client.command()
@@ -234,7 +287,7 @@ async def addbdword(message):
 		if newxp >= tg_XP and "BOT" not in str(message.author.roles):
 			lvl +=1
 			cr.execute(f"UPDATE ranks SET XP = '0', lvl = {lvl} WHERE id = '{message.author.id}'")
-			await message.channel.send(f"Good Job {username.mention} for advancing to level: {lvl}")
+			await message.channel.send(f"Good Job {message.author.mention} for advancing to level: {lvl}")
 		else:
 			cr.execute(f"UPDATE ranks SET XP = '{newxp}' WHERE id = '{message.author.id}'")
 		cr.execute(f"INSERT INTO bad_words (bad_word) VALUES ('{msg}')")
@@ -333,9 +386,12 @@ async def leave(ctx) :
 @client.command()
 async def info(ctx, member:discord.Member=None):
 	if member == None:
-		emb = discord.Embed(title = (f"Welcome {ctx.author}"),description = "Test",color = 0x6B5B95)
+		cr.execute(f"SELECT roles FROM users WHERE id = '{ctx.message.author.id}'")
+		r = cr.fetchone()[0]
+
+		emb = discord.Embed(title = (f"Welcome {ctx.author}"),description = "This is your Information",color = 0x6B5B95)
 		emb.add_field(name = "Account Level",inline = True,value=get_user_XP_LVL(ctx.author.id)[1])
-		emb.add_field(name = "Roles",inline = True,value= "Your roles in db")
+		emb.add_field(name = "Roles",inline = True,value=r.replace("@everyone,",""))
 		dateY = ctx.message.author.created_at.strftime("%Y")
 		dateM = ctx.message.author.created_at.strftime("%m")
 		dateD = ctx.message.author.created_at.strftime("%d")
@@ -356,10 +412,12 @@ async def info(ctx, member:discord.Member=None):
 		await ctx.send(embed=emb)
 
 	elif member != None :
+		cr.execute(f"SELECT roles FROM users WHERE id = '{member.id}'")
+		r = cr.fetchone()[0]
 		user = client.get_user(member.id)
-		emb = discord.Embed(title = (f"Welcome {ctx.author}, This is informations of\n{member}"),description = "Test",color = 0x6B5B95)
+		emb = discord.Embed(title = (f"Welcome {ctx.author}"),description = f"This is informations of\n{member}",color = 0x6B5B95)
 		emb.add_field(name = "Account Level",inline = True,value=get_user_XP_LVL(member.id)[1])
-		emb.add_field(name = "Roles",inline = True,value= "His roles in db")
+		emb.add_field(name = "Roles",inline = True,value=r.replace("@everyone,",""))
 		dateY = user.created_at.strftime("%Y")
 		dateM = user.created_at.strftime("%m")
 		dateD = user.created_at.strftime("%d")
