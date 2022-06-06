@@ -8,6 +8,7 @@ import sqlite3
 from discord.utils import get
 import datetime
 import DiscordUtils
+from youtubesearchpython import VideosSearch
 # import discord_slash
 # from disco.types.message import MessageEmbed
 
@@ -97,16 +98,80 @@ def get_user_XP_LVL(ig):
 	xpdata = cr.fetchone()
 	return xpdata
 
+
+
+
+
 @client.command()
 async def play(ctx,*,url):
 	player = music.get_player(guild_id = ctx.guild.id)
+	if "https:" in url:
+		url = url
+	else:
+		l = url
+		video = VideosSearch(l,limit = 1)
+		url = video.result()['result'][0]['link']
+		
 	if not player:
 		player = music.create_player(ctx,fmmpeg_error_betterfix=True)
 	if not ctx.voice_client.is_playing():
 		await player.queue(url , search=True)
 		song = await player.play()
+		await ctx.send(f"Playing: {song.name}")
 	else:
 		song = await player.queue(url,search=True)
+		await ctx.send(f"Queud: {song.name}")
+
+@client.command()
+async def pause(ctx):
+	player = music.get_player(guild_id=ctx.guild.id)
+	song = await player.pause()
+	await ctx.send("Paused")
+
+@client.command()
+async def resume(ctx):
+	player = music.get_player(guild_id=ctx.guild.id)
+	song = await player.resume()
+	await ctx.send("Resumed")
+
+@client.command()
+async def stop(ctx):
+    player = music.get_player(guild_id=ctx.guild.id)
+    await player.stop()
+    await ctx.send("Stopped")
+
+@client.command()
+async def queue(ctx):
+    player = music.get_player(guild_id=ctx.guild.id)
+    await ctx.send(f"{', '.join([song.name for song in player.current_queue()])}")
+
+@client.command()
+async def np(ctx):
+    player = music.get_player(guild_id=ctx.guild.id)
+    song = player.now_playing()
+    await ctx.send(song.name)
+
+@client.command()
+async def skip(ctx):
+    player = music.get_player(guild_id=ctx.guild.id)
+    data = await player.skip(force=True)
+    if len(data) == 2:
+        await ctx.send(f"Skipped from {data[0].name} to {data[1].name}")
+    else:
+        await ctx.send(f"Skipped {data[0].name}")
+
+@client.command()
+async def volume(ctx, vol):
+    player = music.get_player(guild_id=ctx.guild.id)
+    song, volume = await player.change_volume(float(vol) / 100) # volume should be a float between 0 to 1
+    await ctx.send(f"Changed volume for {song.name} to {int(volume*100)}%")
+    
+@client.command()
+async def remove(ctx, index):
+    player = music.get_player(guild_id=ctx.guild.id)
+    song = await player.remove_from_queue(int(index))
+    await ctx.send(f"Removed {song.name} from queue")
+
 
 #Delete Bad Words
 @client.listen('on_message')
