@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 from discord.ext.commands import has_permissions
-from interactions import Guild
 from keep_alive import keep_alive
 from discord_components import DiscordComponents, Button, ButtonStyle
 import sqlite3
@@ -22,6 +21,7 @@ music = DiscordUtils.Music()
 intents = discord.Intents.all()
 intents.members = True
 client = commands.Bot(command_prefix = "!" ,intents=intents)
+cog = commands.Cog
 
 def read_token():
 		with open("token.txt","r") as f:
@@ -98,10 +98,11 @@ def get_user_XP_LVL(ig):
 	xpdata = cr.fetchone()
 	return xpdata
 
-
-
-
-
+bad_commands = commands.MissingRequiredArgument, commands.BadArgument, commands.TooManyArguments, commands.UserInputError, commands.CommandNotFound
+@client.event
+async def on_command_error(ctx, error):
+	if isinstance(error,bad_commands):
+		await ctx.channel.send(f'Command Not found')
 @client.command()
 async def play(ctx,*,url):
 	player = music.get_player(guild_id = ctx.guild.id)
@@ -264,6 +265,10 @@ async def warn(message, member : discord.Member=None) :
 		await message.send("Waiting Admins aproval")
 		await client.get_channel(839642523722055691).send(f"Author : {message.author.mention} \nWant's to warn {member.mention}")
 
+@client.event
+async def on_member_remove(member):
+	emb = discord.Embed(title="Member Left",description=f"{member.mention} left the server")
+	await client.get_channel(958072130598219847).send(embed=emb)
 
 @client.event
 async def on_member_join(member):
@@ -536,6 +541,7 @@ async def status(ctx, member:discord.Member=None) :
 
 		else :
 			await ctx.send(f"{member.mention} dont want to get disturbed")
+
 
 
 # keep_alive()
