@@ -330,13 +330,13 @@ async def give_role(ctx, user: discord.Member,role:discord.Role):
 	if role in user.roles:
 		await ctx.send("The user has this role already")
 	else:
-		cr.execute(f"SELECT roles FROM users WHERE user_name = '{user}'")
+		cr.execute(f"SELECT roles FROM users WHERE id = '{user.id}'")
 		rls = cr.fetchone()[0]
 		if rls == None or rls == '':
-			cr.execute(f"UPDATE users SET roles ='{role}' WHERE user_name = '{user}'")
+			cr.execute(f"UPDATE users SET roles ='{role}' WHERE id = '{user.id}'")
 		else:
 			new_rls = f"{rls},{role}"
-			cr.execute(f"UPDATE users SET roles ='{new_rls}' WHERE user_name = '{user}'")
+			cr.execute(f"UPDATE users SET roles ='{new_rls}' WHERE id = '{user.id}'")
 		db.commit()
 		await user.add_roles(role)
 		await client.get_channel(958072130598219847).send(f"{user} has been given {role} Role")
@@ -347,7 +347,7 @@ async def removerole(ctx, user: discord.Member,role:discord.Role):
 	if role not in user.roles:
 		await ctx.send("The user dont have this role already")
 	else:
-		cr.execute(f"SELECT roles FROM users WHERE user_name = '{user}'")
+		cr.execute(f"SELECT roles FROM users WHERE id = '{user.id}'")
 		roles = cr.fetchone()[0]
 		new_roles = roles.replace(f"{role}",'')
 		llrls = new_roles.replace(',,',',')
