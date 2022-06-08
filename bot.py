@@ -103,8 +103,44 @@ bad_commands = commands.MissingRequiredArgument, commands.BadArgument, commands.
 async def on_command_error(ctx, error):
 	if isinstance(error,bad_commands):
 		await ctx.channel.send(f'Command Not found')
+
+@client.command(pass_context = True)
+async def join(ctx):
+	#if author is in channel
+	if (ctx.author.voice):
+		#if bot isnt in ANY channels
+		voice_client = get(ctx.bot.voice_clients, guild=ctx.guild)
+		if voice_client == None :
+			channel = ctx.message.author.voice.channel
+			await channel.connect()
+		#if bot in channel
+		else :
+			#if in the SAME channel
+			if (ctx.voice_client.channel.id) == (ctx.message.author.voice.channel.id) :
+				await ctx.send("I am in the same voice channel")
+			#if in ANOTHER channel
+			elif (ctx.voice_client.channel.id) != (ctx.message.author.voice.channel.id) :
+				await ctx.guild.voice_client.disconnect()
+				channel = ctx.message.author.voice.channel
+				await channel.connect()
+	#if author isnt in ANY channels
+	else :
+		await ctx.send("You are not in a voice channel, you must be in a voice channnel to run this command!")
+@client.command(pass_context = True)
+async def leave(ctx) :
+	if (ctx.voice_client) :
+		await ctx.guild.voice_client.disconnect()
+		await ctx.send("I left the voice channel")
+	else :
+		await ctx.send("I am not in a voice channel")
+
 @client.command()
 async def play(ctx,*,url):
+	if not (ctx.voice_client):
+		voice_client = get(ctx.bot.voice_clients, guild=ctx.guild)
+		if voice_client == None :
+			channel = ctx.message.author.voice.channel
+			await channel.connect()
 	player = music.get_player(guild_id = ctx.guild.id)
 	if "https:" in url:
 		url = url
@@ -137,14 +173,19 @@ async def resume(ctx):
 
 @client.command()
 async def stop(ctx):
-    player = music.get_player(guild_id=ctx.guild.id)
-    await player.stop()
-    await ctx.send("Stopped")
+	if (ctx.voice_client) :
+		player = music.get_player(guild_id=ctx.guild.id)
+		await ctx.guild.voice_client.disconnect()
+		await player.stop()
+		await ctx.send("Stopped")
+	else :
+		await ctx.send("I am not Playing")
+
 
 @client.command()
 async def queue(ctx):
     player = music.get_player(guild_id=ctx.guild.id)
-    await ctx.send(f"{', '.join([song.name for song in player.current_queue()])}")
+    await ctx.send(f"{' ,'.join([song.name for song in player.current_queue()])}")
 
 @client.command()
 async def np(ctx):
@@ -156,10 +197,8 @@ async def np(ctx):
 async def skip(ctx):
     player = music.get_player(guild_id=ctx.guild.id)
     data = await player.skip(force=True)
-    if len(data) == 2:
-        await ctx.send(f"Skipped from {data[0].name} to {data[1].name}")
-    else:
-        await ctx.send(f"Skipped {data[0].name}")
+    playr = player.current_queue()
+    await ctx.send(f"Skipped from {playr[0].name} to {playr[1].name}")
 
 @client.command()
 async def volume(ctx, vol):
@@ -422,36 +461,6 @@ async def spam(message, member:discord.Member=None):
 			await message.channel.send(count)
 			count = count - 1
 
-@client.command(pass_context = True)
-async def join(ctx):
-	#if author is in channel
-	if (ctx.author.voice):
-		#if bot isnt in ANY channels
-		voice_client = get(ctx.bot.voice_clients, guild=ctx.guild)
-		if voice_client == None :
-			channel = ctx.message.author.voice.channel
-			await channel.connect()
-		#if bot in channel
-		else :
-			#if in the SAME channel
-			if (ctx.voice_client.channel.id) == (ctx.message.author.voice.channel.id) :
-				await ctx.send("I am in the same voice channel")
-			#if in ANOTHER channel
-			elif (ctx.voice_client.channel.id) != (ctx.message.author.voice.channel.id) :
-				await ctx.guild.voice_client.disconnect()
-				channel = ctx.message.author.voice.channel
-				await channel.connect()
-	#if author isnt in ANY channels
-	else :
-		await ctx.send("You are not in a voice channel, you must be in a voice channnel to run this command!")
-
-@client.command(pass_context = True)
-async def leave(ctx) :
-	if (ctx.voice_client) :
-		await ctx.guild.voice_client.disconnect()
-		await ctx.send("I left the voice channel")
-	else :
-		await ctx.send("I am not in a voice channel")
 
 @client.command()
 async def info(ctx, member:discord.Member=None):
