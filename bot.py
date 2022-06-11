@@ -5,18 +5,17 @@ from keep_alive import keep_alive
 from discord_components import DiscordComponents, Button, ButtonStyle
 import sqlite3
 from discord.utils import get
-import datetime
-import DiscordUtils
+from datetime import datetime
+from DiscordUtils import Music
 from youtubesearchpython import VideosSearch
-# import discord_slash
+
 # from disco.types.message import MessageEmbed
 
 
 
 db = sqlite3.connect("bot_database.db")
 cr = db.cursor()
-EmojiLink = "0"
-music = DiscordUtils.Music()
+music = Music()
 
 intents = discord.Intents.all()
 intents.members = True
@@ -68,21 +67,21 @@ async def on_ready():
 async def ping(ctx):
 	await ctx.send((f'Pong! In {round(client.latency * 1000)}ms'))
 
-@client.command()
-async def button(ctx):
-	await ctx.send(
-			"this is a button test :smile:"
-			,components=[[
-				Button(style=ButtonStyle.blue,
-				label="Button 1"),
-				Button(style=ButtonStyle.red,
-				label="Button 2")]])
+# @client.command()
+# async def button(ctx):
+# 	await ctx.send(
+# 			"this is a button test :smile:"
+# 			,components=[[
+# 				Button(style=ButtonStyle.blue,
+# 				label="Button 1"),
+# 				Button(style=ButtonStyle.red,
+# 				label="Button 2")]])
 
 
-	res = await client.wait_for("button_click")
+# 	res = await client.wait_for("button_click")
 
-	if res.channel == ctx.channel :
-		await res.message.channel.send(EmojiLink)
+# 	if res.channel == ctx.channel :
+# 		await res.message.channel.send(EmojiLink)
 
 def get_users_from_db():
 	global users
@@ -98,11 +97,11 @@ def get_user_XP_LVL(ig):
 	xpdata = cr.fetchone()
 	return xpdata
 
-bad_commands = commands.MissingRequiredArgument, commands.BadArgument, commands.TooManyArguments, commands.UserInputError, commands.CommandNotFound
-@client.event
-async def on_command_error(ctx, error):
-	if isinstance(error,bad_commands):
-		await ctx.channel.send(f'Command Not found')
+# bad_commands = commands.MissingRequiredArgument, commands.BadArgument, commands.TooManyArguments, commands.UserInputError, commands.CommandNotFound
+# @client.event
+# async def on_command_error(ctx, error):
+# 	if isinstance(error,bad_commands):
+# 		await ctx.channel.send(f'Command Not found')
 
 @client.command(pass_context = True)
 async def join(ctx):
@@ -212,6 +211,10 @@ async def remove(ctx, index):
     song = await player.remove_from_queue(int(index))
     await ctx.send(f"Removed {song.name} from queue")
 
+# @bot.command(name="first_test",description="this is a test",scope=839639743771836456)
+# @client.command()
+# async def lojf(ctx: interactions.CommandContext):
+#	await ctx.send(f"I am working! I was made with Discord.py")
 
 #Delete Bad Words
 @client.listen('on_message')
@@ -241,25 +244,26 @@ async def BadWords(message):
 			cr.execute(f"UPDATE ranks SET XP = '{new_xp}' WHERE id = '{id}'")
 			db.commit()
 	elif id not in users and "BOT" not in str(message.author.roles):
-		cr.execute(f"INSERT INTO users (user_name,id,no_of_BD) VALUES ('{username}','{id}','0')")
+		r = str(message.author.roles)
+		cr.execute(f"INSERT INTO users (user_name,id,no_of_BD,roles) VALUES ('{username}','{id}','0','{r}')")
 		db.commit()
 		cr.execute(f"INSERT INTO ranks (id,XP,lvl) VALUES ('{id}','{int(0)}','{int(0)}')")
 		db.commit()
 	for txt in Blocked_Words:
-		if txt in str(message.content.lower()) and "Admin" not in str(message.author.roles):
-				cr.execute(f"SELECT no_of_BD FROM users where id = '{id}'")
-				BD = cr.fetchone()
-				new_BD = int(BD[0])+1
-				cr.execute(f"UPDATE users SET no_of_BD = '{new_BD}' WHERE id = '{id}'")
-				db.commit()
-				await message.delete()
-				# await message.channel.send("Bad Word :shushing_face:")
-				await message.channel.send("اخلاقك يا برو ")
-				cr.execute("SELECT value FROM STATS WHERE item = 'no_bad_words'")
-				badwrd = cr.fetchone()
-				new_badwrd = int(badwrd[0])+1
-				cr.execute(f"UPDATE STATS SET value ='{new_badwrd}' WHERE item = 'no_bad_words'")
-				db.commit()
+		if txt in str(message.content.lower()) and "Admin" not in str(message.author.roles) and "BOT" not in str(message.author.roles):
+			print(str(message.author.roles))
+			cr.execute(f"SELECT no_of_BD FROM users where id = '{id}'")
+			BD = cr.fetchone()
+			new_BD = int(BD[0])+1
+			cr.execute(f"UPDATE users SET no_of_BD = '{new_BD}' WHERE id = '{id}'")
+			db.commit()
+			await message.delete()
+			await message.channel.send("اخلاقك يا برو ")
+			cr.execute("SELECT value FROM STATS WHERE item = 'no_bad_words'")
+			badwrd = cr.fetchone()
+			new_badwrd = int(badwrd[0])+1
+			cr.execute(f"UPDATE STATS SET value ='{new_badwrd}' WHERE item = 'no_bad_words'")
+			db.commit()
 @client.command()
 async def STATS(ctx):
 	cr.execute("SELECT value FROM STATS WHERE item = 'no_bad_words'")
@@ -267,7 +271,7 @@ async def STATS(ctx):
 	cr.execute("SELECT value FROM STATS WHERE item = 'messages'")
 	msg = cr.fetchone()
 	cr.execute("SELECT value FROM STATS WHERE item = 'no_users'")
-	nousr = cr.fetchone()
+	nousr = cr.fetchone() 
 	await ctx.channel.send(f"no. of bad words : {nobd[0]} , no. msg : {msg[0]} , usr : {nousr[0]}")
 
 @client.command()
@@ -323,24 +327,33 @@ async def on_member_join(member):
 	await client.get_channel(839671710856773632).send(embed=emb)
 	await member.add_roles(role)
 
-
 @client.command(pass_context=True)
 @commands.has_permissions(manage_roles=True)
 async def give_role(ctx, user: discord.Member,role:discord.Role):
+	get_users_from_db()
 	if role in user.roles:
 		await ctx.send("The user has this role already")
 	else:
-		cr.execute(f"SELECT roles FROM users WHERE id = '{user.id}'")
-		rls = cr.fetchone()[0]
-		if rls == None or rls == '':
-			cr.execute(f"UPDATE users SET roles ='{role}' WHERE id = '{user.id}'")
+		if user.id in users:
+			cr.execute(f"SELECT roles FROM users WHERE id = '{user.id}'")
+			rls = cr.fetchone()[0]
+			if rls == None or rls == '':
+				cr.execute(f"UPDATE users SET roles ='{role}' WHERE id = '{user.id}'")
+			else:
+				new_rls = f"{rls},{role}"
+				cr.execute(f"UPDATE users SET roles ='{new_rls}' WHERE id = '{user.id}'")
+			db.commit()
+			await user.add_roles(role)
+			await client.get_channel(958072130598219847).send(f"{user} has been given {role} Role")
 		else:
-			new_rls = f"{rls},{role}"
-			cr.execute(f"UPDATE users SET roles ='{new_rls}' WHERE id = '{user.id}'")
-		db.commit()
-		await user.add_roles(role)
-		await client.get_channel(958072130598219847).send(f"{user} has been given {role} Role")
-
+			cr.execute(f"INSERT INTO users (user_name,id,no_of_BD) VALUES ('{user}','{user.id}','0')")
+			db.commit()
+			cr.execute(f"INSERT INTO ranks (id,XP,lvl) VALUES ('{user.id}','0','0')")
+			db.commit()
+			cr.execute(f"UPDATE users SET roles = '{role}' WHERE id = '{user.id}'")
+			db.commit()
+			await user.add_roles(role)
+			await client.get_channel(958072130598219847).send(f"{user} has been given {role} Role")
 @client.command(pass_context=True)
 @commands.has_permissions(manage_roles=True)
 async def removerole(ctx, user: discord.Member,role:discord.Role):
@@ -358,6 +371,14 @@ async def removerole(ctx, user: discord.Member,role:discord.Role):
 		cr.execute(f"UPDATE users SET roles = '{llrls}' WHERE id = '{user.id}'")
 		db.commit()
 		await user.remove_roles(role)
+
+@client.command(pass_context=True)
+async def check(ctx, user:discord.Member):
+	if user.id in users:
+		await ctx.send("safe and sound")
+	else:
+		await ctx.send("not found")
+
 
 @client.command(pass_context=True)
 async def rank(message, user: discord.Member=None):
@@ -416,8 +437,9 @@ async def صباحو(message):
 # Audit Log (any delete of Message)
 @client.event
 async def on_message_delete(message): #.replace(tzinfo=timezone('UTC+2'))
-	date = message.created_at.strftime("%Y/%m/%d, %I:%M:%S")
-	date_now = datetime.datetime.today().strftime("%Y/%m/%d, %I:%M:%S")
+	datetest = int(message.created_at.strftime("%I"))+2
+	date = message.created_at.strftime("%Y/%m/%d, " + str(datetest) +":%M:%S")
+	date_now = datetime.today().strftime("%Y/%m/%d, %I:%M:%S")
 	emb = discord.Embed(title = (f"Message deletion"),description = f"A message was deleted in <#{message.channel.id}>",color = 0x6B5B95)
 	emb.add_field(name = "Message Content", inline = False, value = message.content)
 	emb.add_field(name = "Message Author", inline = False, value = message.author)
@@ -474,11 +496,11 @@ async def info(ctx, member:discord.Member=None):
 		dateY = ctx.message.author.created_at.strftime("%Y")
 		dateM = ctx.message.author.created_at.strftime("%m")
 		dateD = ctx.message.author.created_at.strftime("%d")
-		date2 = datetime.datetime.today().strftime("%Y/%m/%d")
-		d2 = datetime.datetime(int(dateY), int(dateM), int(dateD))
+		date2 = datetime.today().strftime("%Y/%m/%d")
+		d2 = datetime(int(dateY), int(dateM), int(dateD))
 		x = d2.strftime("%Y/%m/%d")
-		dt1 = datetime.datetime.strptime(x,"%Y/%m/%d")
-		dt2 = datetime.datetime.strptime(date2,"%Y/%m/%d")
+		dt1 = datetime.strptime(x,"%Y/%m/%d")
+		dt2 = datetime.strptime(date2,"%Y/%m/%d")
 		d = dt2 - dt1
 		ind = str(d).find("d")
 		years = int(str(d)[:ind])/365
@@ -500,11 +522,11 @@ async def info(ctx, member:discord.Member=None):
 		dateY = user.created_at.strftime("%Y")
 		dateM = user.created_at.strftime("%m")
 		dateD = user.created_at.strftime("%d")
-		date2 = datetime.datetime.today().strftime("%Y/%m/%d")
-		d2 = datetime.datetime(int(dateY), int(dateM), int(dateD))
+		date2 = datetime.today().strftime("%Y/%m/%d")
+		d2 = datetime(int(dateY), int(dateM), int(dateD))
 		x = d2.strftime("%Y/%m/%d")
-		dt1 = datetime.datetime.strptime(x,"%Y/%m/%d")
-		dt2 = datetime.datetime.strptime(date2,"%Y/%m/%d")
+		dt1 = datetime.strptime(x,"%Y/%m/%d")
+		dt2 = datetime.strptime(date2,"%Y/%m/%d")
 		d = dt2 - dt1
 		ind = str(d).find("d")
 		years = int(str(d)[:ind])/365
