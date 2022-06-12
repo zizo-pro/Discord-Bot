@@ -14,13 +14,9 @@ from youtubesearchpython import VideosSearch
 
 
 db = sqlite3.connect("bot_database.db")
-cr = db.cursor()
-music = Music()
-
-intents = discord.Intents.all()
+cr,music,intents = db.cursor(),Music(),discord.Intents.all()
 intents.members = True
-client = commands.Bot(command_prefix = "!" ,intents=intents)
-cog = commands.Cog
+client,cog = commands.Bot(command_prefix = "!" ,intents=intents),commands.Cog
 
 def read_token():
 		with open("token.txt","r") as f:
@@ -216,7 +212,6 @@ async def remove(ctx, index):
 # async def lojf(ctx: interactions.CommandContext):
 #	await ctx.send(f"I am working! I was made with Discord.py")
 
-#Delete Bad Words
 @client.listen('on_message')
 async def BadWords(message):
 	if "BOT" not in str(message.author.roles):
@@ -245,17 +240,17 @@ async def BadWords(message):
 			db.commit()
 	elif id not in users and "BOT" not in str(message.author.roles):
 		r = str(message.author.roles)
-		cr.execute(f"INSERT INTO users (user_name,id,no_of_BD,roles) VALUES ('{username}','{id}','0','{r}')")
+		cr.execute(f"INSERT INTO users (user_name,id,roles) VALUES ('{username}','{id}','{r}')")
 		db.commit()
 		cr.execute(f"INSERT INTO ranks (id,XP,lvl) VALUES ('{id}','{int(0)}','{int(0)}')")
 		db.commit()
 	for txt in Blocked_Words:
 		if txt in str(message.content.lower()) and "Admin" not in str(message.author.roles) and "BOT" not in str(message.author.roles):
 			print(str(message.author.roles))
-			cr.execute(f"SELECT no_of_BD FROM users where id = '{id}'")
+			cr.execute(f"SELECT bad_words FROM violations where id = '{id}'")
 			BD = cr.fetchone()
 			new_BD = int(BD[0])+1
-			cr.execute(f"UPDATE users SET no_of_BD = '{new_BD}' WHERE id = '{id}'")
+			cr.execute(f"UPDATE violations SET bad_words = '{new_BD}' WHERE id = '{id}'")
 			db.commit()
 			await message.delete()
 			await message.channel.send("اخلاقك يا برو ")
@@ -264,6 +259,7 @@ async def BadWords(message):
 			new_badwrd = int(badwrd[0])+1
 			cr.execute(f"UPDATE STATS SET value ='{new_badwrd}' WHERE item = 'no_bad_words'")
 			db.commit()
+
 @client.command()
 async def STATS(ctx):
 	cr.execute("SELECT value FROM STATS WHERE item = 'no_bad_words'")
@@ -298,10 +294,17 @@ async def zizo(ctx):
 @client.command()
 async def warn(message, member : discord.Member=None) :
 	if "Admin" in str(message.author.roles) :
+		cr.execute(f"SELECT warns FROM violations WHERE id = '{member.id}'")
+		no = cr.fetchone()
+		newno = int(no[0])+1
+		cr.execute(f"UPDATE violations SET warns = '{newno}' WHERE id = '{member.id}'")
+		db.commit()
+
+
 		await message.send(
 			f'"{member}" has been warned\n'
 			# f'Reason : {Reason}'
-			'Now he has # warns'     # replace (#) with db warns
+			f'Now he has {newno} warns'     # replace (#) with db warns
 		)
 
 	else :
@@ -356,7 +359,7 @@ async def give_role(ctx, user: discord.Member,role:discord.Role):
 			await client.get_channel(958072130598219847).send(f"{user} has been given {role} Role")
 @client.command(pass_context=True)
 @commands.has_permissions(manage_roles=True)
-async def removerole(ctx, user: discord.Member,role:discord.Role):
+async def remove_role(ctx, user: discord.Member,role:discord.Role):
 	if role not in user.roles:
 		await ctx.send("The user dont have this role already")
 	else:
@@ -404,7 +407,7 @@ async def top(message):
 	await message.channel.send(embed=emb)
 
 @client.command()
-async def addbdword(message):
+async def addbadword(message):
 	ind = str(message.message.content.find(" "))
 	msg = message.message.content[int(ind)+1:]
 	if msg in Blocked_Words:
