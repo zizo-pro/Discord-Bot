@@ -573,7 +573,84 @@ async def status(ctx, member:discord.Member=None) :
 		else :
 			await ctx.send(f"{member.mention} dont want to get disturbed")
 
+@client.command()
+async def secrethelp(ctx, command=None) :
+	if command == None :
+		emb = discord.Embed(title="Command List", color=discord.Color.dark_magenta())
+		emb.add_field(name="!ping", value= "Tests Latency of the bot",inline= False)
+		emb.add_field(name="!join", value= "joins the channel you in",inline= False)
+		emb.add_field(name="!leave", value= "leave Whatever channel he in",inline= False)
+		emb.add_field(name="!play", value= "plays music (!play 'link or song's name')",inline= False)
+		emb.add_field(name="!pause", value= "Pauses playing music",inline= False)
+		emb.add_field(name="!stop", value= "stop plaing music",inline= False)
+		emb.add_field(name="!queue", value= "Showing the queue list",inline= False)
+		emb.add_field(name="!np", value= "Showing name of playing song",inline= False)
+		emb.add_field(name="!skip", value= "Skip playing song",inline= False)
+		emb.add_field(name="!volume", value= "change volume of the song",inline= False)
+		emb.add_field(name="!remove", value= "remove song from queue",inline= False)
+		emb.add_field(name="!warn", value= "warn someone",inline= False)
+		emb.add_field(name="!rank", value= "your rank",inline= False)
+		emb.add_field(name="!top", value= "list of highest ranks",inline= False)
+		emb.add_field(name="!addbdword", value= "add a bad word",inline= False)
+		emb.add_field(name="!avatar", value= "showing someone's avatar",inline= False)
+		emb.add_field(name="!spam", value= "mention's someone for five times",inline= False)
+		emb.add_field(name="!info", value= "info of someone",inline= False)
+		emb.add_field(name="!about", value= "showing server's details",inline= False)
+		emb.add_field(name="!status", value= "showing if someone is online or offline",inline= False)
+		await ctx.send(embed=emb)
 
+	elif command == "ping" :
+		emb = discord.Embed(title = "!ping [member]", description = "Tests Latency of the bot")
+		await ctx.send(embed=emb)
 
+	elif command == "join" :
+		emb = discord.Embed(title = "!join",  description = "joins the cannel you in")
+		await ctx.send(embed=emb)
+		
+	elif command == "leave" :
+		emb = discord.Embed(title = "!leave",  description = "leave Whatever channel he in")
+		await ctx.send(embed=emb)
+
+	elif command == "play" :
+		emb = discord.Embed(title = "!play [song title]",  description = "plays the first result from Youtube", inline = False)
+		emb.add_field(name = "!play [URL]", value = "plays the provided song", inline = False)
+		await ctx.send(embed=emb)
+
+	elif command == "pause" :
+		emb = discord.Embed(title = "!pause",  description = "Pauses playing song")
+		await ctx.send(embed=emb)
+
+	elif command == "stop" :
+		emb = discord.Embed(title = "!stop",  description = "stops the song")
+		await ctx.send(embed=emb)
+
+	elif command == "queue" :
+		emb = discord.Embed(title = "!queue",  description = "shows the list of queued songs")
+		await ctx.send(embed=emb)
+
+	elif command == "np" :
+		emb = discord.Embed(title = "!np",  description = "shows the name of playing song")
+		await ctx.send(embed=emb)
+
+	elif command == "skip" :
+		emb = discord.Embed(title = "!skip",  description = "skip to the next song")
+		await ctx.send(embed=emb)
+
+	elif command == "volume" :
+		emb = discord.Embed(title = "!volume [percentage]",  description = "changes the volume of the song")
+		await ctx.send(embed=emb)
+
+	elif command == "remove" :
+		emb = discord.Embed(title = "!volume [percentage]",  description = "changes the volume of the song")
+		await ctx.send(embed=emb)
+
+	elif command == "warn" :
+		emb = discord.Embed(title = "!warn [member]",  description = "warn a member")
+		await ctx.send(embed=emb)
+
+	elif command == "rank" :
+		emb = discord.Embed(title = "!rank",  description = "shows your rank")
+		await ctx.send(embed=emb)
+		
 # keep_alive()
 client.run(read_token())
