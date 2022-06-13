@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from discord.ext import commands , slash
 from discord.ext.commands import has_permissions
 from keep_alive import keep_alive
 from discord_components import DiscordComponents, Button, ButtonStyle
@@ -8,15 +8,17 @@ from discord.utils import get
 from datetime import datetime
 from DiscordUtils import Music
 from youtubesearchpython import VideosSearch
-
-# from disco.types.message import MessageEmbed
-
-
+from discord_slash import SlashCommand,SlashContext
 
 db = sqlite3.connect("bot_database.db")
 cr,music,intents = db.cursor(),Music(),discord.Intents.all()
 intents.members = True
 client,cog = commands.Bot(command_prefix = "!" ,intents=intents),commands.Cog
+
+# from disco.types.message import MessageEmbed
+	
+slash = SlashCommand(client,sync_commands=True)
+
 
 def read_token():
 		with open("token.txt","r") as f:
@@ -59,9 +61,20 @@ async def on_ready():
 		print(f"Bot logged in as {client.user}")
 		DiscordComponents(client)
 
-@client.command()
+"""PINGING BOT"""    
+@slash.slash(name = 'ping',description = 'Shows the bot latency')
 async def ping(ctx):
 	await ctx.send((f'Pong! In {round(client.latency * 1000)}ms'))
+@client.command()
+async def ping(ctx):
+    await ctx.send(f"Pong! In {round(client.latency * 1000)}ms")
+"""PINGING BOT"""
+
+@slash.slash(name='test',description = 'just a test')
+async def test(ctx:SlashContext,user:str):
+	await ctx.send(f"Hello {id}")
+
+
 
 # @client.command()
 # async def button(ctx):
@@ -121,6 +134,8 @@ async def join(ctx):
 	#if author isnt in ANY channels
 	else :
 		await ctx.send("You are not in a voice channel, you must be in a voice channnel to run this command!")
+
+
 @client.command(pass_context = True)
 async def leave(ctx) :
 	if (ctx.voice_client) :
@@ -657,3 +672,4 @@ async def secrethelp(ctx, command=None) :
 		
 # keep_alive()
 client.run(read_token())
+# clint.run(read_token())
