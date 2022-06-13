@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from discord.ext import commands , slash
 from discord.ext.commands import has_permissions
 from keep_alive import keep_alive
 from discord_components import DiscordComponents, Button, ButtonStyle
@@ -8,15 +8,17 @@ from discord.utils import get
 from datetime import datetime
 from DiscordUtils import Music
 from youtubesearchpython import VideosSearch
-
-# from disco.types.message import MessageEmbed
-
-
+from discord_slash import SlashCommand,SlashContext
 
 db = sqlite3.connect("bot_database.db")
 cr,music,intents = db.cursor(),Music(),discord.Intents.all()
 intents.members = True
 client,cog = commands.Bot(command_prefix = "!" ,intents=intents),commands.Cog
+
+# from disco.types.message import MessageEmbed
+	
+slash = SlashCommand(client,sync_commands=True)
+
 
 def read_token():
 		with open("token.txt","r") as f:
@@ -59,9 +61,20 @@ async def on_ready():
 		print(f"Bot logged in as {client.user}")
 		DiscordComponents(client)
 
-@client.command()
+"""PINGING BOT"""    
+@slash.slash(name = 'ping',description = 'Shows the bot latency')
 async def ping(ctx):
 	await ctx.send((f'Pong! In {round(client.latency * 1000)}ms'))
+@client.command()
+async def ping(ctx):
+    await ctx.send(f"Pong! In {round(client.latency * 1000)}ms")
+"""PINGING BOT"""
+
+@slash.slash(name='test',description = 'just a test')
+async def test(ctx:SlashContext,user:str):
+	await ctx.send(f"Hello {id}")
+
+
 
 # @client.command()
 # async def button(ctx):
@@ -121,6 +134,8 @@ async def join(ctx):
 	#if author isnt in ANY channels
 	else :
 		await ctx.send("You are not in a voice channel, you must be in a voice channnel to run this command!")
+
+
 @client.command(pass_context = True)
 async def leave(ctx) :
 	if (ctx.voice_client) :
@@ -594,95 +609,67 @@ async def secrethelp(ctx, command=None) :
 		emb.add_field(name="!warn", value= "warn someone",inline= False)
 		emb.add_field(name="!rank", value= "your rank",inline= False)
 		emb.add_field(name="!top", value= "list of highest ranks",inline= False)
-		emb.add_field(name="!addbadword", value= "add a bad word",inline= False)
+		emb.add_field(name="!addbdword", value= "add a bad word",inline= False)
 		emb.add_field(name="!avatar", value= "showing someone's avatar",inline= False)
 		emb.add_field(name="!spam", value= "mention's someone for five times",inline= False)
 		emb.add_field(name="!info", value= "info of someone",inline= False)
 		emb.add_field(name="!about", value= "showing server's details",inline= False)
 		emb.add_field(name="!status", value= "showing if someone is online or offline",inline= False)
 		await ctx.send(embed=emb)
-	elif command != None :
-		command = command.lower()
-		if command == "ping" :
-			emb = discord.Embed(title = "!ping", description = "Tests Latency of the bot")
-			await ctx.send(embed=emb)
 
-		elif command == "join" :
-			emb = discord.Embed(title = "!join",  description = "joins the cannel you in")
-			await ctx.send(embed=emb)
-			
-		elif command == "leave" :
-			emb = discord.Embed(title = "!leave",  description = "leave Whatever channel he in")
-			await ctx.send(embed=emb)
+	elif command == "ping" :
+		emb = discord.Embed(title = "!ping [member]", description = "Tests Latency of the bot")
+		await ctx.send(embed=emb)
 
-		elif command == "play" :
-			emb = discord.Embed(title = "!play [song title]",  description = "plays the first result from Youtube", inline = False)
-			emb.add_field(name = "!play [URL]", value = "plays the provided song", inline = False)
-			await ctx.send(embed=emb)
+	elif command == "join" :
+		emb = discord.Embed(title = "!join",  description = "joins the cannel you in")
+		await ctx.send(embed=emb)
+		
+	elif command == "leave" :
+		emb = discord.Embed(title = "!leave",  description = "leave Whatever channel he in")
+		await ctx.send(embed=emb)
 
-		elif command == "pause" :
-			emb = discord.Embed(title = "!pause",  description = "Pauses playing song")
-			await ctx.send(embed=emb)
+	elif command == "play" :
+		emb = discord.Embed(title = "!play [song title]",  description = "plays the first result from Youtube", inline = False)
+		emb.add_field(name = "!play [URL]", value = "plays the provided song", inline = False)
+		await ctx.send(embed=emb)
 
-		elif command == "stop" :
-			emb = discord.Embed(title = "!stop",  description = "stops the song")
-			await ctx.send(embed=emb)
+	elif command == "pause" :
+		emb = discord.Embed(title = "!pause",  description = "Pauses playing song")
+		await ctx.send(embed=emb)
 
-		elif command == "queue" :
-			emb = discord.Embed(title = "!queue",  description = "shows the list of queued songs")
-			await ctx.send(embed=emb)
+	elif command == "stop" :
+		emb = discord.Embed(title = "!stop",  description = "stops the song")
+		await ctx.send(embed=emb)
 
-		elif command == "np" :
-			emb = discord.Embed(title = "!np",  description = "shows the name of playing song")
-			await ctx.send(embed=emb)
+	elif command == "queue" :
+		emb = discord.Embed(title = "!queue",  description = "shows the list of queued songs")
+		await ctx.send(embed=emb)
 
-		elif command == "skip" :
-			emb = discord.Embed(title = "!skip",  description = "skip to the next song")
-			await ctx.send(embed=emb)
+	elif command == "np" :
+		emb = discord.Embed(title = "!np",  description = "shows the name of playing song")
+		await ctx.send(embed=emb)
 
-		elif command == "volume" :
-			emb = discord.Embed(title = "!volume [percentage]",  description = "changes the volume of the song")
-			await ctx.send(embed=emb)
+	elif command == "skip" :
+		emb = discord.Embed(title = "!skip",  description = "skip to the next song")
+		await ctx.send(embed=emb)
 
-		elif command == "remove" :
-			emb = discord.Embed(title = "!volume [percentage]",  description = "changes the volume of the song")
-			await ctx.send(embed=emb)
+	elif command == "volume" :
+		emb = discord.Embed(title = "!volume [percentage]",  description = "changes the volume of the song")
+		await ctx.send(embed=emb)
 
-		elif command == "warn" :
-			emb = discord.Embed(title = "!warn [member]",  description = "warn a member")
-			await ctx.send(embed=emb)
+	elif command == "remove" :
+		emb = discord.Embed(title = "!volume [percentage]",  description = "changes the volume of the song")
+		await ctx.send(embed=emb)
 
-		elif command == "rank" :
-			emb = discord.Embed(title = "!rank",  description = "shows your rank")
-			await ctx.send(embed=emb)
+	elif command == "warn" :
+		emb = discord.Embed(title = "!warn [member]",  description = "warn a member")
+		await ctx.send(embed=emb)
 
-		elif command == "top" :
-			emb = discord.Embed(title = "!top",  description = "shows your rank")
-			await ctx.send(embed=emb)
-
-		elif command == "top" :
-			emb = discord.Embed(title = "!addbadword [text]",  description = "adding a bad word in database")
-			await ctx.send(embed=emb)
-
-		elif command == "avatar" :
-			emb = discord.Embed(title = "!avatar [member]",  description = "showing someone's avatar or profile picture")
-			await ctx.send(embed=emb)
-
-		elif command == "spam" :
-			emb = discord.Embed(title = "!spam [member]",  description = "mention's someone for five times")
-			await ctx.send(embed=emb)
-
-		elif command == "info" :
-			emb = discord.Embed(title = "!info [member]",  description = "info of someone")
-			await ctx.send(embed=emb)
-
-		elif command == "about" :
-			emb = discord.Embed(title = "!about",  description = "showing server's details")
-			await ctx.send(embed=emb)
-
-		elif command == "status" :
-			emb = discord.Embed(title = "!status [member]",  description = "showing if someone is online or offline")
-			await ctx.send(embed=emb)
-			
+	elif command == "rank" :
+		emb = discord.Embed(title = "!rank",  description = "shows your rank")
+		await ctx.send(embed=emb)
+		
 # keep_alive()
 client.run(read_token())
+# clint.run(read_token())
